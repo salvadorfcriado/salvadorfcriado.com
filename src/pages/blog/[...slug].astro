@@ -1,9 +1,11 @@
 ---
 import { getCollection, render } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import TagChips from '../../components/TagChips.astro';
-import { SITE } from '../../consts';
+import { SITE, BLOG } from '../../consts';
 import { tagLabel } from '../../tags';
+import { isoDay } from '../../lib/format';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog', ({ data }) => !data.draft);
@@ -14,31 +16,65 @@ const { post } = Astro.props;
 const { Content } = await render(post);
 const d = post.data;
 const iso = d.date.toISOString();
-const day = iso.slice(0, 10);
+const day = isoDay(d.date);
+
+/* Read next: most tag overlap first, newest as the tiebreak. Posts used to be
+   dead ends — the only exit was an off-site link, at the warmest moment on the
+   whole site. */
+const all = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const related = all
+  .filter((p: CollectionEntry<'blog'>) => p.id !== post.id)
+  .map((p: CollectionEntry<'blog'>) => ({
+    p,
+    overlap: p.data.tags.filter((t) => (d.tags as readonly string[]).includes(t)).length,
+  }))
+  .sort((a, b) => b.overlap - a.overlap)
+  .slice(0, 2)
+  .map(({ p }) => p);
 
 /* A hand-made cover wins; otherwise the card scripts/og.mjs rendered for this
    slug. Never the site-wide default — that is what made every article unfurl
    with the same picture. */
 const ogImage = d.cover ?? `/img/og/${post.id}.png`;
 
-const jsonLd = [{
-  '@type': 'BlogPosting',
-  '@id': `${SITE.url}/blog/${post.id}/#post`,
-  headline: d.title,
-  description: d.excerpt,
-  datePublished: iso,
-  dateModified: iso,
-  author: { '@id': `${SITE.url}/#person` },
-  publisher: { '@id': `${SITE.url}/#person` },
-  mainEntityOfPage: `${SITE.url}/blog/${post.id}/`,
-  image: new URL(ogImage, SITE.url).href,
-  keywords: d.tags.map(tagLabel).join(', '),
-  about: d.tags.map((t) => ({ '@type': 'Thing', name: tagLabel(t) })),
-  inLanguage: 'en',
-}];
+const jsonLd = [
+  {
+    '@type': 'BlogPosting',
+    '@id': `${SITE.url}/blog/${post.id}/#post`,
+    headline: d.title,
+    description: d.excerpt,
+    datePublished: iso,
+    dateModified: iso,
+    author: { '@id': `${SITE.url}/#person` },
+    publisher: { '@id': `${SITE.url}/#person` },
+    isPartOf: { '@id': `${SITE.url}/blog/#blog` },
+    mainEntityOfPage: `${SITE.url}/blog/${post.id}/`,
+    image: new URL(ogImage, SITE.url).href,
+    keywords: d.tags.map(tagLabel).join(', '),
+    about: d.tags.map((t) => ({ '@type': 'Thing', name: tagLabel(t) })),
+    inLanguage: 'en',
+  },
+  {
+    '@type': 'BreadcrumbList',
+    '@id': `${SITE.url}/blog/${post.id}/#breadcrumb`,
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE.url}/` },
+      { '@type': 'ListItem', position: 2, name: BLOG.name, item: `${SITE.url}/blog/` },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: tagLabel(d.tags[0]),
+        item: `${SITE.url}/blog/tags/${d.tags[0]}/`,
+      },
+      { '@type': 'ListItem', position: 4, name: d.title },
+    ],
+  },
+];
 ---
 <Base
-  title={`${d.title} — Salvador F. Criado`}
+  title={d.title}
+  ogTitle={d.title}
   description={d.excerpt}
   path={`/blog/${post.id}/`}
   ogImage={ogImage}
@@ -63,39 +99,58 @@ const jsonLd = [{
     </div>
 
     <footer class="end">
-      <a class="btn btn-primary" href={SITE.linkedin} rel="me noopener" target="_blank">Connect on LinkedIn</a>
+      {related.length > 0 && (
+        <nav class="related" aria-label="Read next">
+          <p class="label">Read next</p>
+          <ul role="list">
+            {related.map((p: CollectionEntry<'blog'>) => (
+              <li><a href={`/blog/${p.id}/`}>{p.data.title}</a></li>
+            ))}
+          </ul>
+          <p class="all"><a href="/blog/">← all field notes</a></p>
+        </nav>
+      )}
+
       <div class="author">
-        <img src="/img/portrait.webp" width="52" height="52" alt="" loading="lazy" />
+        <img src="/img/portrait-390.webp" width="52" height="52" alt="" loading="lazy" />
         <p>
-          <strong>Salvador F. Criado</strong> — AI &amp; Platform Engineer, Granada (Spain), remote.
-          LLM applications, agents, real-time voice, vLLM serving, AWS · Azure · Terraform · Kubernetes.
+          <strong>{SITE.name}</strong> — AI Engineer and Platform Engineer in Granada (Spain),
+          remote worldwide. Eight years of production systems; agents, RAG and vLLM serving on top
+          of AWS, Terraform and Kubernetes.
+          <span class="open">{SITE.status}</span>
         </p>
+      </div>
+
+      <div class="cta">
+        <a class="btn btn-primary" href={`mailto:${SITE.email}?subject=Role`}>{SITE.email}</a>
+        <a class="btn btn-outline" href="/#work">See what I've built</a>
+        <a class="btn btn-outline" href={SITE.linkedin} rel="me noopener" target="_blank">LinkedIn<span class="sr-only"> (opens in a new tab)</span></a>
       </div>
     </footer>
   </article>
 </Base>
 
 <style>
-  .post { max-width: 720px; margin: 0 auto; padding: 56px var(--space-section-x) 64px; }
+  .post { max-width: 720px; margin: 0 auto; padding: var(--space-gap-xl) var(--space-section-x) 64px; }
   .meta { font-family: var(--font-mono); font-size: var(--text-label); color: var(--text-muted); }
   .head h1 {
-    font-size: 40px; font-weight: 700; line-height: 1.1;
+    font-size: var(--text-h1); font-weight: 700; line-height: 1.1;
     letter-spacing: var(--tracking-display); margin: 14px 0 16px;
   }
   .summary { font-size: var(--text-body-lg); line-height: 1.6; margin-bottom: 18px; }
   .head { padding-bottom: 28px; border-bottom: 1px solid var(--border); }
 
-  .prose { font-size: 17px; line-height: 1.75; margin-top: 32px; }
+  .prose { font-size: var(--text-body-lg); line-height: 1.75; margin-top: var(--space-gap-lg); }
   .prose :global(h2) {
-    font-size: 24px; font-weight: 700; letter-spacing: var(--tracking-tight);
+    font-size: var(--text-h2); font-weight: 700; letter-spacing: var(--tracking-tight);
     margin: 44px 0 14px; line-height: 1.25;
   }
-  .prose :global(h3) { font-size: 19px; font-weight: 600; margin: 32px 0 10px; }
+  .prose :global(h3) { font-size: var(--text-h3); font-weight: 600; margin: var(--space-gap-lg) 0 10px; }
   .prose :global(p) { margin: 0 0 18px; }
   .prose :global(ul), .prose :global(ol) { margin: 0 0 18px; padding-left: 22px; }
-  .prose :global(li) { margin-bottom: 8px; }
+  .prose :global(li) { margin-bottom: var(--space-gap-sm); }
   .prose :global(a) { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
-  .prose :global(a:hover) { color: var(--accent-strong); }
+  .prose :global(a:hover), .prose :global(a:focus-visible) { color: var(--accent-strong); }
   .prose :global(strong) { color: var(--ink); font-weight: 600; }
   .prose :global(hr) { border: 0; border-top: 1px solid var(--border); margin: 40px 0; }
   .prose :global(blockquote) {
@@ -107,32 +162,47 @@ const jsonLd = [{
     background: var(--accent-soft); color: var(--accent-strong);
     padding: 2px 5px; border-radius: 4px;
   }
+  /* Shiki is pinned to github-light in astro.config.mjs. It writes the theme's
+     background as an INLINE style on the <pre>, which beat the rule below and
+     put --ink text on a #24292e plate at 1.24:1. Let the theme own both. */
   .prose :global(pre) {
-    background: var(--surface); border: 1px solid var(--border);
+    border: 1px solid var(--border);
     border-radius: var(--radius-card); padding: 18px 20px;
-    overflow-x: auto; margin: 0 0 22px; font-size: 13.5px; line-height: 1.6;
+    overflow-x: auto; margin: 0 0 22px; font-size: var(--text-code); line-height: 1.6;
   }
-  .prose :global(pre code) { background: none; color: var(--ink); padding: 0; font-size: inherit; }
+  .prose :global(pre code) { background: none; padding: 0; font-size: inherit; }
   .prose :global(table) {
-    width: 100%; border-collapse: collapse; margin: 0 0 22px; font-size: var(--text-body-sm);
+    width: 100%; border-collapse: collapse; margin: 0 0 22px; font-size: var(--text-body);
     display: block; overflow-x: auto;
   }
   .prose :global(th), .prose :global(td) {
     border-bottom: 1px solid var(--border); padding: 10px 12px; text-align: left; vertical-align: top;
   }
   .prose :global(th) {
-    font-family: var(--font-mono); font-size: var(--text-meta); font-weight: 600;
+    font-family: var(--font-display); font-size: var(--text-meta); font-weight: 600;
     letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--ink);
   }
   .prose :global(img) { border-radius: var(--radius-card); margin: 0 0 22px; }
 
   .end { margin-top: 48px; padding-top: 28px; border-top: 1px solid var(--border); }
-  .author { display: flex; gap: var(--space-gap); align-items: flex-start; margin-top: 28px; }
+  .related ul { list-style: none; margin: 12px 0 0; padding: 0; }
+  .related li { margin-bottom: var(--space-gap-sm); }
+  .related li a {
+    font-family: var(--font-display); font-size: var(--text-card-title);
+    font-weight: 600; color: var(--ink);
+  }
+  .related li a:hover, .related li a:focus-visible { color: var(--accent); }
+  .related .all { font-family: var(--font-mono); font-size: var(--text-label); margin-top: 12px; }
+  .related .all a { color: var(--accent); }
+  .author { display: flex; gap: var(--space-gap); align-items: flex-start; margin-top: var(--space-gap-lg); }
   .author img { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; flex: none; }
-  .author p { font-size: var(--text-body-sm); line-height: 1.6; }
+  .author p { font-size: var(--text-body); line-height: 1.6; }
   .author strong { color: var(--ink); }
+  .open { display: block; margin-top: 6px; color: var(--accent); font-family: var(--font-mono); font-size: var(--text-meta); }
   @media (max-width: 620px) {
     .head h1 { font-size: 30px; }
     .prose { font-size: 16px; }
+    /* Half the line was off-screen at 375px. */
+    .prose :global(pre) { font-size: 12px; padding: 14px; }
   }
 </style>

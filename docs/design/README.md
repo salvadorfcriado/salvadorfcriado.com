@@ -91,7 +91,7 @@ None — fully static site. Blog = Markdown content collection with frontmatter:
 7. **Language:** `lang="en"`; hreflang only if a Spanish version is added later.
 
 ## Assets
-- `assets/salvador-criado-cv.pdf` — the real CV. Serve at `/cv/salvador-criado-cv.pdf` for the "CV (PDF)" buttons. Also the source of truth for facts.
+- `assets/salvador-criado-cv.pdf` — the real CV. Source of truth for facts. **Not served by the site:** the `/cv` route and the "CV (PDF)" buttons were removed in commit 5924801.
 - Portrait + ambient photos: **not provided yet** — build with neutral placeholders sized per spec; the owner will supply photos. If `design-reference/.image-slots.state.json` contains dropped images, extract and use those.
 - Blog cover images: owner-provided per post; fall back to a generated typographic cover (title on `--surface` + graph grid).
 - Fonts: Google Fonts families listed above (self-host in production).

@@ -1,0 +1,45 @@
+---
+/* One row in a post listing. Identical markup and styles used to live in both
+   blog/index.astro and blog/tags/[tag].astro. */
+import type { CollectionEntry } from 'astro:content';
+import Cover from './Cover.astro';
+import { tagLabel } from '../tags';
+import { isoDay } from '../lib/format';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+const d = post.data;
+const day = isoDay(d.date);
+---
+<li>
+  <div class="row">
+    <Cover title={d.title} tag={d.tags[0]} variant="thumb" />
+    <div class="body">
+      <p class="meta">
+        <time datetime={day}>{day}</time>
+        {' · '}{d.tags.map(tagLabel).join(' · ')}{' · '}{d.readingTime} min
+      </p>
+      {/* Only the title is the link. Wrapping the whole card made the accessible
+          name a paragraph that opened with the date and every tag. */}
+      <h2><a href={`/blog/${post.id}/`}>{d.title}</a></h2>
+      <p class="excerpt">{d.excerpt}</p>
+    </div>
+  </div>
+</li>
+
+<style>
+  .row { display: flex; gap: var(--space-gap-lg); align-items: flex-start; padding: var(--space-gap-md) 0; }
+  .meta { font-family: var(--font-mono); font-size: var(--text-label); color: var(--text-muted); }
+  h2 {
+    font-size: var(--text-h3); font-weight: 600;
+    letter-spacing: var(--tracking-tight); margin: 6px 0 var(--space-gap-sm);
+  }
+  h2 a:hover, h2 a:focus-visible { color: var(--accent); }
+  .excerpt { font-size: var(--text-body); max-width: var(--measure); }
+  @media (max-width: 620px) {
+    .row { flex-direction: column; gap: var(--space-gap); }
+  }
+</style>

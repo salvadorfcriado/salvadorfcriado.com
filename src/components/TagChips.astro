@@ -13,7 +13,8 @@ interface Props {
 
 const { tags, current, variant = 'row' } = Astro.props;
 ---
-<ul class:list={['chips', variant]}>
+{/* role="list" — WebKit drops list semantics when list-style is none. */}
+<ul class:list={['chips', variant]} role="list">
   {tags.map((slug) => (
     <li>
       <a
@@ -30,25 +31,17 @@ const { tags, current, variant = 'row' } = Astro.props;
     display: flex; flex-wrap: wrap; gap: var(--space-gap-sm);
     list-style: none; margin: 0; padding: 0;
   }
-  .chip {
-    display: inline-block;
-    font-family: var(--font-mono);
-    font-size: var(--text-label);
-    letter-spacing: var(--tracking-label);
-    text-transform: uppercase;
-    color: var(--text-muted);
-    background: var(--bg);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--radius-chip);
-    padding: 5px 10px;
-    white-space: nowrap;
+  /* The .chip base lives in global.css — it was restated in three places. */
+  .chip:hover, .chip:focus-visible {
+    color: var(--accent-strong); border-color: var(--accent); background: var(--accent-soft);
   }
-  .chip:hover { color: var(--accent-strong); border-color: var(--accent); background: var(--accent-soft); }
   .chip.active {
     color: var(--on-accent);
     background: var(--accent);
     border-color: var(--accent);
   }
-  .chip.active:hover { background: var(--accent-strong); border-color: var(--accent-strong); color: var(--on-accent); }
+  .chip.active:hover, .chip.active:focus-visible {
+    background: var(--accent-strong); border-color: var(--accent-strong); color: var(--on-accent);
+  }
   .inline .chip { font-size: var(--text-meta); padding: 4px 8px; }
 </style>

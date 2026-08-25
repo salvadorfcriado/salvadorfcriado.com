@@ -3,7 +3,7 @@ title: "Your RAG doesn't have a retrieval problem. It has a ranking problem."
 date: 2026-08-27
 tags: [rag, search-retrieval, evaluation]
 readingTime: 9
-excerpt: "The document was in the index and the answer was still wrong. How to tell a retrieval failure from a ranking failure, in what order to fix them, and what each fix costs."
+excerpt: "The document was in the index and the answer was still wrong. How to tell a retrieval failure from a ranking failure, what to fix first, and what each costs."
 ---
 
 The document was in the index. The answer was still wrong.
@@ -52,7 +52,7 @@ Symptom on the left, the measurement that discriminates in the middle, the likel
 | Right chunk found, answer still wrong | Recall@5 high | **Not a retrieval problem.** Now go look at the prompt. |
 | Right chunk exists but is half a sentence | Read the chunk. Just read it. | **Chunking.** |
 | Correct-but-stale document wins | Check date fields in payload | **Missing metadata filter.** |
-| Worked in dev, degraded in prod | Compare ANN recall vs exact search on the same queries | **ANN/quantization recall loss.** See below. |
+| Worked in dev, degraded in prod | Compare ANN recall vs exact search on the same queries | **ANN/quantisation recall loss.** See below. |
 
 ---
 
@@ -60,11 +60,11 @@ Symptom on the left, the measurement that discriminates in the middle, the likel
 
 Before you touch rankers, rule this out, because it invalidates every measurement above.
 
-Vector search is approximate by construction. HNSW walks a graph and stops when it thinks it has converged. If `ef` at search time is too low, the right chunk is dropped **before ranking is even a concept** — and nothing logs it. Your recall isn't 100% of what's in the index; it's whatever the graph traversal happened to reach.
+Vector search is approximate by construction. [HNSW](https://arxiv.org/abs/1603.09320) walks a graph and stops when it thinks it has converged. If `ef` at search time is too low, the right chunk is dropped **before ranking is even a concept** — and nothing logs it. Your recall isn't 100% of what's in the index; it's whatever the graph traversal happened to reach.
 
-Same for quantization. Scalar int8 or binary quantization cuts memory dramatically and costs recall, and the loss is not uniform — it hits exactly the near-neighbour cases where two documents are close and only one is right. Which is the case that matters.
+Same for quantisation. Scalar int8 or binary quantisation cuts memory dramatically and costs recall, and the loss is not uniform — it hits exactly the near-neighbour cases where two documents are close and only one is right. Which is the case that matters.
 
-The check takes ten minutes: run your golden set through ANN search, then run the same queries with exact/brute-force search over the same corpus, and compare Recall@k. If the gap is meaningful, raise `hnsw_ef`, or enable rescoring with oversampling so quantized candidates get re-scored against full-precision vectors, and re-measure.
+The check takes ten minutes: run your golden set through ANN search, then run the same queries with exact/brute-force search over the same corpus, and compare Recall@k. If the gap is meaningful, raise `hnsw_ef`, or enable rescoring with oversampling so quantised candidates get re-scored against full-precision vectors, and re-measure.
 
 Teams find two to twelve points of recall sitting on the floor here, for a latency cost measured in single-digit milliseconds. It is the cheapest fix in this entire article and virtually nobody runs it, because the index never reports a failure. It just quietly returns something.
 
@@ -85,7 +85,7 @@ score(d) = Σ  1 / (k + rank_i(d))        k ≈ 60 by convention
          i∈retrievers
 ```
 
-It only reads rank position, never raw scores — which is exactly why it is robust. A document that both retrievers rank reasonably beats a document one retriever loves and the other has never heard of. Most vector databases now ship this natively (Qdrant does it in a single Query API call with `prefetch` + `fusion`), so the integration cost is close to zero.
+It only reads rank position, never raw scores — which is exactly why it is robust. A document that both retrievers rank reasonably beats a document one retriever loves and the other has never heard of. Most vector databases now ship this natively ([Qdrant does it in a single Query API call](https://qdrant.tech/documentation/concepts/hybrid-queries/) with `prefetch` + `fusion`), so the integration cost is close to zero.
 
 **When it does not help:** corpora with no rare-token vocabulary — narrative text, conversational transcripts, marketing copy. If your documents have no identifiers in them, BM25 has nothing to contribute and you'll pay latency for a tie.
 
@@ -117,7 +117,7 @@ Three failures cause most of it:
 
 **Chunks stripped of context.** A paragraph that says "this does not apply to customers on legacy plans" is unusable without the heading three levels up that says which policy it belongs to. Prepend the heading path to the chunk text before embedding. It is a two-line change and it moves recall more than most model swaps.
 
-**Chunks with no payload.** This is the underrated half. Source, tenant, document type, effective date, version — filtering on those *before* ranking removes whole categories of wrong answer for free. It is cheaper than any reranker and it never hallucinates. Most "stale answer" bugs are a missing date filter, not a model failure.
+**Chunks with no payload.** This is the underrated half. Source, tenant, document type, effective date, version — filtering on those *before* ranking removes whole categories of wrong answer for free. It is cheaper than any reranker and it never hallucinates. Most ["stale answer" bugs](/blog/the-half-nobody-put-on-call/) are a missing date filter, not a model failure.
 
 ---
 
@@ -131,7 +131,7 @@ The user's question is not always a good search query. Three transforms pay for 
 - **Decomposition.** Multi-hop questions ("how does the refund policy differ from last year's?") need two retrievals and a comparison, not one blended search that half-matches both.
 - **Expansion / rewriting.** Conversational follow-ups ("and for business accounts?") are meaningless standalone. Rewrite against conversation history before searching. On voice systems this is not optional — almost every turn after the first is a fragment.
 
-The cost: each of these adds an LLM call in front of retrieval, which is latency and a new failure surface. Worth it for a research assistant. Often not worth it for a sub-two-second voice loop, where you rewrite with the cheapest possible model or not at all.
+The cost: each of these adds an LLM call in front of retrieval, which is latency and [a new failure surface](/blog/temperature-zero-is-not-deterministic/). Worth it for a research assistant. Often not worth it for a sub-two-second voice loop, where you rewrite with the cheapest possible model or not at all.
 
 ---
 

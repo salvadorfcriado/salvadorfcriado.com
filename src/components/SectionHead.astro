@@ -1,0 +1,46 @@
+---
+/* Section eyebrow. The ordinal is aria-hidden: as literal heading text it was
+   announced as "zero one slash What I do" in a heading-list read-out.
+   The title carries meaning rather than a number — an <h2> on the landing page
+   is too valuable to spend on "04 / About". */
+
+interface Props {
+  /* '01', '02' … rendered, but not announced. */
+  index: string;
+  title: string;
+  /* Optional trailing link, right-aligned on the same baseline. */
+  action?: { href: string; label: string; external?: boolean; accent?: boolean };
+  /* A display heading below the eyebrow, e.g. "Field notes". */
+  display?: string;
+  id?: string;
+}
+
+const { index, title, action, display, id } = Astro.props;
+---
+<div class="head">
+  <div>
+    {display ? (
+      <>
+        <p class="label"><span class="ord" aria-hidden="true">{index} / </span>{title}</p>
+        <h2 class="display" id={id}>{display}</h2>
+      </>
+    ) : (
+      <h2 class="label" id={id}><span class="ord" aria-hidden="true">{index} / </span>{title}</h2>
+    )}
+  </div>
+  {action && (
+    <a
+      class:list={['mono-link', { 'accent-link': action.accent }]}
+      href={action.href}
+      rel={action.external ? 'noopener noreferrer' : undefined}
+      target={action.external ? '_blank' : undefined}
+    >{action.label}{action.external && <span class="sr-only"> (opens in a new tab)</span>}</a>
+  )}
+</div>
+
+<style>
+  .display {
+    font-size: var(--text-h2-lg); font-weight: 700;
+    letter-spacing: var(--tracking-tight); margin-top: var(--space-gap-sm);
+  }
+</style>

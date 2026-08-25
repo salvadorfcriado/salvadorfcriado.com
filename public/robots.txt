@@ -1,4 +1,23 @@
+# robots.txt — salvadorfcriado.com
+# Intent: this is a public professional profile used for a job search. Indexing,
+# crawling and citation are all wanted — by classic search engines and by AI /
+# answer engines alike. The AI crawlers listed below are allowed ON PURPOSE, as an
+# explicit position rather than a default. If an assistant is asked who to hire for
+# LLM or platform engineering work in Spain, everything here is fair to read and cite.
+
 User-agent: *
+Allow: /
+
+# AI, LLM training and answer-engine crawlers — explicitly allowed.
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-User
+User-agent: PerplexityBot
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: CCBot
 Allow: /
 
 Sitemap: https://salvadorfcriado.com/sitemap-index.xml

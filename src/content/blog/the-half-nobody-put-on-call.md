@@ -3,7 +3,7 @@ title: "The half of your GenAI system nobody put on call"
 date: 2026-09-10
 tags: [llmops, data-engineering, rag]
 readingTime: 8
-excerpt: "Nobody's RAG system breaks — it quietly stops being right. The data jobs nobody wrote down, the three mechanisms that make them safe, and what to put on a dashboard."
+excerpt: "Nobody's RAG system breaks — it quietly stops being right. The jobs nobody wrote down, three mechanisms that make them safe, and what to put on a dashboard."
 ---
 
 Nobody's RAG system breaks. It quietly stops being right.
@@ -29,7 +29,7 @@ Every other failure in your stack announces itself. This one doesn't, and that i
 | Chunking config changed, old chunks kept | Duplicate near-identical results, inconsistent answers | Chunk count vs expected for corpus size |
 | Superseded doc never removed | Old and new version compete; sometimes old wins | Documents without an `effective_date` filter |
 
-Notice that none of these throw. Every single one returns a 200 in 400 milliseconds. That is why the fix is not error handling — it's scheduling and measurement.
+Notice that none of these throw. Every single one returns a 200 in 400 milliseconds. No amount of error handling catches them. The fix is scheduling and measurement.
 
 ---
 
@@ -41,7 +41,7 @@ Write down what actually has to happen on a schedule and the picture gets uncomf
 
 **Re-embedding.** You upgrade the embedding model and every vector already stored is now measured on a different scale. Old vectors and new vectors do not live in the same space, and mixing them is worse than either alone — similarity between them is meaningless, not merely degraded. This is a full-corpus rebuild. It is the single most expensive scheduled job in the system, which is exactly why it gets postponed until results are bad enough to force it.
 
-**Scheduled evaluation.** A golden set is worth exactly what its cadence is worth. Run it nightly and a regression is caught by a job. Run it when someone remembers and a regression is caught by a customer.
+**Scheduled evaluation.** A [golden set](/blog/rag-ranking-not-retrieval/) is worth exactly what its cadence is worth. Run it nightly and a regression is caught by a job. Run it when someone remembers and a regression is caught by a customer.
 
 **Visible parse failures.** Twelve PDFs failed to extract. If that is a warning in a log nobody reads, your index shrinks a few percent a quarter and every gap shows up later as a confident wrong answer about a document you believe you indexed.
 
@@ -76,7 +76,7 @@ Scheduling the jobs isn't enough. Run them naively and you'll cause the outage y
 
 The most common ingestion bug: a job re-runs, and now the corpus has every chunk twice. Retrieval quality collapses, because your top-5 is three copies of the same passage.
 
-The fix is to make the chunk's identity **derive from its content**, not from insertion order. Hash the source document ID plus the chunk index plus the chunk text, and deterministically turn that hash into the vector store's ID type (Qdrant, for example, takes unsigned integers or UUIDs — so a UUIDv5 over the hash, not the raw hex string, which is the kind of detail that costs an afternoon).
+The fix is to make the chunk's identity **derive from its content**, not from insertion order. Hash the source document ID plus the chunk index plus the chunk text, and deterministically turn that hash into the vector store's ID type ([Qdrant](https://qdrant.tech/documentation/concepts/points/), for example, takes unsigned integers or UUIDs — so a UUIDv5 over the hash, not the raw hex string, which is the kind of detail that costs an afternoon).
 
 Now every write is an upsert. Re-running the job on unchanged content is a no-op. Re-running it on changed content overwrites in place. A retry is safe, a backfill is safe, and a partially-failed run can simply be run again — which is what makes the whole pipeline restartable instead of something a human has to reason about at 2am.
 
@@ -114,9 +114,9 @@ The same gate belongs on the ingestion path: parse failure rate above a threshol
 Nothing exotic. That's the point.
 
 - **Sensor or event trigger** on the source — object storage notification, CDC feed, or a plain scheduled poll with a watermark so you only pick up what changed since the last successful run.
-- **Dynamic task mapping** to fan out parsing and embedding per document, so one poisoned file fails one task instead of the run.
+- **[Dynamic task mapping](https://airflow.apache.org/docs/apache-airflow/stable/authoring-and-scheduling/dynamic-task-mapping.html)** to fan out parsing and embedding per document, so one poisoned file fails one task instead of the run.
 - **A pool** capping concurrent embedding tasks, because the GPU is the scarce resource and unbounded parallelism just means OOM instead of throughput.
-- **Deferrable operators** for the long waits, so a six-hour embed isn't holding a worker slot hostage.
+- **[Deferrable operators](https://airflow.apache.org/docs/apache-airflow/stable/authoring-and-scheduling/deferring.html)** for the long waits, so a six-hour embed isn't holding a worker slot hostage.
 - **Asset/dataset-driven triggering** so the eval DAG runs *because* the index was rebuilt, not because a cron guessed it would be done by then.
 - **Retries with backoff** on anything touching an external API, and **no retries** on a genuinely malformed document — that one should stay red until a human looks at it.
 
@@ -135,7 +135,7 @@ If you take one thing from this article, take this list. Six numbers, and stalen
 5. **Embedding model version distribution** — how many vectors were produced by which model. Anything other than 100% on one version means an interrupted migration.
 6. **Time since last full re-embed** — the number that tells you how overdue the expensive job is.
 
-Put these next to your latency and token dashboards. The fact that they usually live in a different tool, owned by a different team, is most of why this problem exists.
+Put these next to your [latency and token dashboards](/blog/temperature-zero-is-not-deterministic/). The fact that they usually live in a different tool, owned by a different team, is most of why this problem exists.
 
 ---
 

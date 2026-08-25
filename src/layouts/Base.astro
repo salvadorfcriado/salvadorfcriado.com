@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import { SITE, ENTITY_PARAGRAPH, KNOWS_ABOUT } from '../consts';
+import { SITE, BLOG, ENTITY_PARAGRAPH, KNOWS_ABOUT } from '../consts';
 import TopBar from '../components/TopBar.astro';
 import Footer from '../components/Footer.astro';
 
@@ -14,6 +14,13 @@ interface Props {
   title: string;
   description: string;
   path: string;
+  /* Appended to `title` for the document title. Pass `false` on a page whose
+     title already reads as a full one. */
+  titleSuffix?: string | false;
+  /* What social platforms show. Kept separate because they truncate around
+     60–70 characters and the site-name suffix eats the payload — og:site_name
+     already carries it. */
+  ogTitle?: string;
   ogImage?: string;
   /* Cards are 1200×630. Declare the size so a crawler picks the large layout
      without having to fetch and decode the image first. */
@@ -22,6 +29,8 @@ interface Props {
   ogImageAlt?: string;
   ogType?: 'website' | 'article';
   article?: ArticleMeta;
+  /* Emits robots noindex. For the error page and for archives too thin to rank. */
+  noindex?: boolean;
   navSlot?: 'anchors' | 'back';
   jsonLd?: Record<string, unknown>[];
 }
@@ -30,28 +39,48 @@ const {
   title,
   description,
   path,
+  titleSuffix = ` — ${SITE.name}`,
+  ogTitle,
   ogImage = '/img/og-default.png',
   ogImageWidth = 1200,
   ogImageHeight = 630,
   ogImageAlt,
   ogType = 'website',
   article,
+  noindex = false,
   navSlot = 'anchors',
   jsonLd = [],
 } = Astro.props;
 
+const documentTitle = titleSuffix === false ? title : `${title}${titleSuffix}`;
+const socialTitle = ogTitle ?? title;
 const canonical = new URL(path, SITE.url).href;
 /* Absolute — a relative og:image is silently dropped by most unfurlers. */
 const ogUrl = new URL(ogImage, SITE.url).href;
-const imageAlt = ogImageAlt ?? title;
+const imageAlt = ogImageAlt ?? socialTitle;
 
+/* One Person node, cross-referenced by @id from every other node on the site.
+   `alternateName` is deliberately absent: it is the property Google uses to
+   build Knowledge Graph aliases, and the legal name is never rendered. */
 const person = {
   '@type': 'Person',
   '@id': `${SITE.url}/#person`,
   name: SITE.name,
-  alternateName: SITE.legalName,
-  jobTitle: SITE.jobTitle,
+  givenName: 'Salvador',
+  familyName: 'Criado',
+  jobTitle: ['AI Engineer', 'Platform Engineer', 'Software Architect'],
+  description:
+    'AI engineer and platform engineer in Granada, Spain, working remotely. Eight years shipping '
+    + 'production systems; LLM applications, RAG, agentic systems and real-time voice on a backbone '
+    + 'of AWS, Azure, Terraform and Kubernetes.',
   url: SITE.url,
+  mainEntityOfPage: { '@id': `${SITE.url}/#profilepage` },
+  image: {
+    '@type': 'ImageObject',
+    url: `${SITE.url}/img/portrait.webp`,
+    width: 512,
+    height: 512,
+  },
   email: `mailto:${SITE.email}`,
   address: {
     '@type': 'PostalAddress',
@@ -59,6 +88,62 @@ const person = {
     addressRegion: SITE.region,
     addressCountry: SITE.country,
   },
+  workLocation: [
+    { '@type': 'Place', name: 'Granada, Spain' },
+    { '@type': 'VirtualLocation', name: 'Remote (worldwide)' },
+  ],
+  knowsLanguage: [
+    { '@type': 'Language', name: 'Spanish', alternateName: 'es' },
+    { '@type': 'Language', name: 'English', alternateName: 'en' },
+  ],
+  hasOccupation: {
+    '@type': 'Occupation',
+    name: 'AI Engineer',
+    /* O*NET-SOC — Software Developers. 15-2051.00 would read as data science
+       instead; do not list both. */
+    occupationalCategory: '15-1252.00',
+    skills: KNOWS_ABOUT.join(', '),
+    occupationLocation: {
+      '@type': 'City',
+      name: 'Granada',
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: 'Granada',
+        addressRegion: 'Andalusia',
+        addressCountry: 'ES',
+      },
+    },
+  },
+  /* The property that says this entity is looking for work. Without it, an
+     answer engine has no way to tell a portfolio from an availability notice. */
+  seeks: {
+    '@type': 'Demand',
+    name: 'Full-time employment as an AI engineer or platform engineer',
+    description:
+      'Open to permanent roles building LLM applications, RAG and agentic systems, and the cloud '
+      + 'platform underneath. Remote preferred; on-site in Granada and surroundings.',
+    availableAtOrFrom: { '@type': 'Place', name: 'Remote — Granada, Spain (UTC+1)' },
+  },
+  hasCredential: [
+    {
+      '@type': 'EducationalOccupationalCredential',
+      name: 'AWS Certified DevOps Engineer — Professional',
+      credentialCategory: 'certification',
+      recognizedBy: { '@type': 'Organization', name: 'Amazon Web Services' },
+    },
+    {
+      '@type': 'EducationalOccupationalCredential',
+      name: 'Agentic AI',
+      credentialCategory: 'certification',
+      recognizedBy: { '@type': 'Organization', name: 'DeepLearning.AI' },
+    },
+    {
+      '@type': 'EducationalOccupationalCredential',
+      name: 'Certified ScrumMaster (CSM)',
+      credentialCategory: 'certification',
+      recognizedBy: { '@type': 'Organization', name: 'Scrum Alliance' },
+    },
+  ],
   sameAs: [SITE.linkedin, SITE.github],
   knowsAbout: KNOWS_ABOUT,
 };
@@ -70,18 +155,30 @@ const graph = { '@context': 'https://schema.org', '@graph': [person, ...jsonLd] 
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title}</title>
+    <title>{documentTitle}</title>
     <meta name="description" content={description} />
+    <meta name="author" content={SITE.name} />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#6d5ae6" />
+    {noindex && <meta name="robots" content="noindex, follow" />}
     <link rel="canonical" href={canonical} />
-    <link rel="alternate" type="application/rss+xml" title={`${SITE.name} — Field notes`} href="/rss.xml" />
+    <link rel="alternate" type="application/rss+xml" title={BLOG.title} href="/rss.xml" />
+    <link rel="alternate" type="text/plain" title="llms.txt" href="/llms.txt" />
     <link rel="sitemap" href="/sitemap-index.xml" />
+
+    {/* No font preload, deliberately. The landing page's LCP element is the
+        portrait, and preloading 68 KB of woff2 ahead of it pushed throttled LCP
+        from 380 ms to 628 ms — measured, three runs, median. CLS was 0.0013 with
+        or without, because the fallback faces above already hold the layout.
+        Re-measure before adding it back. */}
 
     <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content={SITE.domain} />
-    <meta property="og:title" content={title} />
+    <meta property="og:title" content={socialTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogUrl} />
+    <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content={String(ogImageWidth)} />
     <meta property="og:image:height" content={String(ogImageHeight)} />
     <meta property="og:image:alt" content={imageAlt} />
@@ -90,24 +187,36 @@ const graph = { '@context': 'https://schema.org', '@graph': [person, ...jsonLd] 
       <>
         <meta property="article:published_time" content={article.publishedTime} />
         <meta property="article:modified_time" content={article.modifiedTime ?? article.publishedTime} />
-        <meta property="article:author" content={SITE.name} />
+        <meta property="article:author" content={SITE.linkedin} />
         {article.tags?.map((t) => <meta property="article:tag" content={t} />)}
       </>
     )}
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={title} />
+    <meta name="twitter:title" content={socialTitle} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogUrl} />
     <meta name="twitter:image:alt" content={imageAlt} />
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <script type="application/ld+json" set:html={JSON.stringify(graph)} />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(graph)} />
   </head>
   <body>
-    <TopBar navSlot={navSlot} />
-    <main>
+    <a class="skip" href="#main">Skip to content</a>
+    <header>
+      <TopBar navSlot={navSlot} />
+    </header>
+    <main id="main" tabindex="-1">
       <slot />
     </main>
     <Footer entity={ENTITY_PARAGRAPH} />
   </body>
 </html>
+
+<style is:global>
+  /* The skip link's target must not draw a focus ring of its own — it receives
+     focus programmatically, and a 1240px outline round the whole page is noise. */
+  main:focus { outline: none; }
+</style>

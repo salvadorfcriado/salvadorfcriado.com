@@ -1,42 +1,53 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import Cover from '../../components/Cover.astro';
+import PostRow from '../../components/PostRow.astro';
 import TagChips from '../../components/TagChips.astro';
-import { SITE } from '../../consts';
-import { sortByVocabulary, tagLabel } from '../../tags';
+import { SITE, BLOG } from '../../consts';
+import { sortByVocabulary } from '../../tags';
 
 const posts = (await getCollection('blog', ({ data }) => !data.draft))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
-const fmt = (d) => d.toISOString().slice(0, 10);
 
 /* Chips come from the posts, not from the vocabulary — a tag nothing carries
    gets no archive page, so nothing may link to one. */
 const tagsInUse = sortByVocabulary([...new Set(posts.flatMap((p) => p.data.tags))]);
 
-const jsonLd = [{
-  '@type': 'Blog',
-  '@id': `${SITE.url}/blog/#blog`,
-  name: 'Field notes',
-  url: `${SITE.url}/blog/`,
-  author: { '@id': `${SITE.url}/#person` },
-  inLanguage: 'en',
-}];
+const jsonLd = [
+  {
+    '@type': 'Blog',
+    '@id': `${SITE.url}/blog/#blog`,
+    name: BLOG.name,
+    description: BLOG.description,
+    url: `${SITE.url}/blog/`,
+    author: { '@id': `${SITE.url}/#person` },
+    inLanguage: 'en',
+  },
+  {
+    '@type': 'BreadcrumbList',
+    '@id': `${SITE.url}/blog/#breadcrumb`,
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE.url}/` },
+      { '@type': 'ListItem', position: 2, name: BLOG.name },
+    ],
+  },
+];
 ---
 <Base
-  title="Field notes — Salvador F. Criado"
-  description="Notes on shipping LLM systems: retrieval and ranking, determinism, serving, and the data jobs nobody puts on call."
+  title={BLOG.name}
+  ogTitle={BLOG.name}
+  description={BLOG.description}
   path="/blog/"
   navSlot="back"
   jsonLd={jsonLd}
 >
-  <section class="masthead-lite">
+  <section class="masthead-lite graph-paper">
     <div class="wrap inner">
       <p class="label">Writing</p>
-      <h1>Field notes</h1>
+      <h1>{BLOG.name}</h1>
       <p class="sub">
         What breaks when an LLM system meets production, and the order to fix it in.
-        <a href="/rss.xml">RSS</a>.
+        <a href="/rss.xml">Subscribe by RSS</a>.
       </p>
       <nav class="filters" aria-label="Filter by topic">
         <TagChips tags={tagsInUse} />
@@ -46,53 +57,27 @@ const jsonLd = [{
 
   <section class="section">
     <div class="wrap">
-      <ul class="rows">
-        {posts.map((p) => (
-          <li>
-            <a class="row" href={`/blog/${p.id}/`}>
-              <Cover title={p.data.title} tag={p.data.tags[0]} variant="thumb" />
-              <div class="body">
-                <p class="meta">
-                  <time datetime={fmt(p.data.date)}>{fmt(p.data.date)}</time>
-                  {' · '}{p.data.tags.map(tagLabel).join(' · ')}{' · '}{p.data.readingTime} min
-                </p>
-                <h2>{p.data.title}</h2>
-                <p class="excerpt">{p.data.excerpt}</p>
-              </div>
-            </a>
-          </li>
-        ))}
+      <ul class="post-rows" role="list">
+        {posts.map((p) => <PostRow post={p} />)}
       </ul>
     </div>
   </section>
 </Base>
 
 <style>
-  .masthead-lite {
-    border-bottom: 1px solid var(--border);
-    background-color: var(--bg);
-    background-image:
-      repeating-linear-gradient(to right, var(--grid-line) 0 1px, transparent 1px var(--grid-cell)),
-      repeating-linear-gradient(to bottom, var(--grid-line) 0 1px, transparent 1px var(--grid-cell));
-  }
-  .inner { padding: 56px var(--space-section-x) 44px; }
+  .masthead-lite { border-bottom: 1px solid var(--border); padding: 0 var(--space-section-x); }
+  .inner { padding: var(--space-gap-xl) 0 44px; }
   .inner h1 {
-    font-size: 52px; font-weight: 700; letter-spacing: var(--tracking-display);
+    font-size: var(--text-h1-lg); font-weight: 700; letter-spacing: var(--tracking-display);
     line-height: 1; margin: 14px 0 12px;
   }
-  .sub { font-size: var(--text-body-lg); max-width: 560px; }
+  .sub { font-size: var(--text-body-lg); max-width: var(--measure); }
   .sub a { color: var(--accent); text-decoration: underline; }
   .filters { margin-top: 26px; }
-  .rows { list-style: none; margin: 0; padding: 0; }
-  .rows li { border-top: 1px solid var(--border); }
-  .rows li:first-child { border-top: 0; }
-  .row { display: flex; gap: var(--space-gap-lg); align-items: flex-start; padding: 24px 0; }
-  .meta { font-family: var(--font-mono); font-size: var(--text-label); color: var(--text-muted); }
-  .row h2 { font-size: 20px; font-weight: 600; letter-spacing: var(--tracking-tight); margin: 6px 0 8px; }
-  .row:hover h2 { color: var(--accent); }
-  .excerpt { font-size: var(--text-body-sm); max-width: 640px; }
+  .post-rows { list-style: none; margin: 0; padding: 0; }
+  .post-rows li { border-top: 1px solid var(--border); }
+  .post-rows li:first-child { border-top: 0; }
   @media (max-width: 620px) {
-    .inner h1 { font-size: 40px; }
-    .row { flex-direction: column; gap: var(--space-gap); }
+    .inner h1 { font-size: var(--text-h1); }
   }
 </style>

@@ -1,42 +1,61 @@
 ---
 import { SITE } from '../consts';
+
+interface Props {
+  navSlot?: 'anchors' | 'back';
+}
+
 const { navSlot = 'anchors' } = Astro.props;
+const status = `${SITE.locality.toUpperCase()}, ${SITE.country} · REMOTE`;
 ---
-<nav class="topbar">
+<div class="topbar">
   <div class="wrap bar">
-    <a class="brand" href="/">SALVADORFCRIADO.COM</a>
-    {navSlot === 'anchors' ? (
-      <div class="links">
-        <a href="/#work">WORK</a><span class="dot">·</span>
-        <a href="/#writing">WRITING</a><span class="dot">·</span>
-        <a href="/#about">ABOUT</a>
-      </div>
-    ) : (
-      <div class="links"><a href="/">← BACK TO HOME</a></div>
-    )}
-    <div class="status">GRANADA, ES · REMOTE</div>
+    <a class="brand" href="/">{SITE.domain.toUpperCase()}</a>
+    <nav class="links" aria-label="Main">
+      {navSlot === 'anchors' ? (
+        <>
+          <a href="/#work">WORK</a>
+          <a href="/#writing">WRITING</a>
+          <a href="/#about">ABOUT</a>
+          <a href={`mailto:${SITE.email}`}>CONTACT</a>
+        </>
+      ) : (
+        <a href="/">← BACK TO HOME</a>
+      )}
+    </nav>
+    <div class="status">{status}</div>
   </div>
-</nav>
+</div>
 
 <style>
-  .topbar { border-bottom: 1px solid var(--border); }
+  /* Horizontal padding sits on the outer element, not inside .wrap — otherwise
+     the bar's content column is 1144px against the sections' 1240px and the two
+     drift 48px apart above a 1240px viewport. Same for .strip and .foot. */
+  .topbar { border-bottom: 1px solid var(--border); padding: 0 var(--space-section-x); }
   .bar {
     display: flex; align-items: center; justify-content: space-between;
     gap: var(--space-gap);
-    padding: 13px var(--space-section-x);
+    padding: 13px 0;
     font-family: var(--font-mono);
     font-size: var(--text-meta);
-    letter-spacing: 0.04em;
+    letter-spacing: var(--tracking-wide);
     color: var(--text-muted);
   }
   .brand { font-weight: 600; color: var(--ink); }
-  .brand:hover, .links a:hover { color: var(--accent); }
-  .links { display: flex; gap: 8px; }
-  .dot { opacity: 0.4; }
+  .brand:hover, .brand:focus-visible,
+  .links a:hover, .links a:focus-visible { color: var(--accent); }
+  /* Separators were text nodes read aloud as "middle dot", at 1.90:1. Now a gap. */
+  .links { display: flex; align-items: center; gap: var(--space-gap); }
   .status { color: var(--text-muted); white-space: nowrap; }
   @media (max-width: 760px) {
-    .bar { flex-wrap: wrap; row-gap: 8px; justify-content: flex-start; }
+    .bar { flex-wrap: wrap; row-gap: var(--space-gap-sm); justify-content: flex-start; }
     .status { margin-left: auto; }
+    /* Nothing here reached 44px; the nav links were 18px tall. */
+    .brand, .links a { display: inline-flex; align-items: center; min-height: 44px; }
+  }
+  @media (max-width: 560px) {
+    /* The bar double-stacked between 461 and 513px with the full domain. */
+    .brand { font-size: var(--text-label); }
   }
   @media (max-width: 460px) { .status { display: none; } }
 </style>

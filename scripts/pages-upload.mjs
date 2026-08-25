@@ -1,13 +1,24 @@
 /* Pages Direct Upload — hashes dist/, uploads what's missing, prints the manifest.
-   Usage: node scripts/pages-upload.mjs <jwt>
+   Usage: CF_PAGES_UPLOAD_JWT=<jwt> node scripts/pages-upload.mjs
    Hash algorithm matches wrangler: blake3(base64(content) + extension), hex, first 32 chars. */
 import { blake3 } from '@noble/hashes/blake3.js';
 import { bytesToHex } from '@noble/hashes/utils.js';
 import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, extname, sep } from 'node:path';
+import { tmpdir } from 'node:os';
 
-const JWT = process.argv[2];
-if (!JWT) { console.error('usage: pages-upload.mjs <jwt>'); process.exit(1); }
+/* Prefer the environment. An argv token is echoed into shell history and is
+   readable by any other user on the box via `ps` for the whole upload — which,
+   for a multi-megabyte dist/, is not a short window. argv stays as a fallback
+   so existing invocations keep working. */
+const JWT = process.env.CF_PAGES_UPLOAD_JWT || process.argv[2];
+if (!JWT) {
+  console.error('usage: CF_PAGES_UPLOAD_JWT=<jwt> node scripts/pages-upload.mjs   (or: pages-upload.mjs <jwt>)');
+  process.exit(1);
+}
+if (!process.env.CF_PAGES_UPLOAD_JWT) {
+  console.warn('pages-upload: token passed on the command line — prefer CF_PAGES_UPLOAD_JWT');
+}
 
 const DIST = 'dist';
 const API = 'https://api.cloudflare.com/client/v4';
@@ -87,5 +98,6 @@ const config = Object.fromEntries(
     .filter((f) => ['/_headers', '/_redirects'].includes(f.path))
     .map((f) => [f.path.slice(1), Buffer.from(f.b64, 'base64').toString('utf8')])
 );
-writeFileSync('/tmp/pages-deploy.json', JSON.stringify({ manifest, ...config }));
-console.log(`deploy payload written: ${Object.keys(manifest).length} assets, config: ${Object.keys(config).join(', ') || 'none'}`);
+const payloadPath = join(tmpdir(), 'pages-deploy.json');
+writeFileSync(payloadPath, JSON.stringify({ manifest, ...config }));
+console.log(`deploy payload written to ${payloadPath}: ${Object.keys(manifest).length} assets, config: ${Object.keys(config).join(', ') || 'none'}`);

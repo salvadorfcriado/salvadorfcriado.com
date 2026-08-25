@@ -1,18 +1,23 @@
 ---
 import Base from '../layouts/Base.astro';
+import { SITE } from '../consts';
 ---
+{/* Cloudflare Pages serves this for every unmatched path, so it must not
+    canonicalise those requests to an indexable URL of its own. */}
 <Base
-  title="Not found — Salvador F. Criado"
-  description="That page does not exist."
-  path="/404"
+  title="Nothing at this URL"
+  description="That page does not exist. Start from the home page or go straight to the field notes."
+  path="/404/"
+  noindex={true}
   navSlot="back"
 >
   <section class="nf">
     <p class="label">404</p>
-    <h1>That page isn't here.</h1>
+    <h1>Nothing at this URL.</h1>
     <p class="body">
-      It may have moved, or it may never have existed. The
-      <a href="/">landing page</a> and the <a href="/blog/">field notes</a> are both intact.
+      It moved or it never existed. Start from the <a href="/">home page</a>, or go straight to the
+      <a href="/blog/">field notes</a>. If you were looking for something specific —
+      <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.
     </p>
   </section>
 </Base>
@@ -20,9 +25,12 @@ import Base from '../layouts/Base.astro';
 <style>
   .nf { max-width: 720px; margin: 0 auto; padding: 96px var(--space-section-x) 120px; }
   .nf h1 {
-    font-size: 40px; font-weight: 700; line-height: 1.1;
+    font-size: var(--text-h1); font-weight: 700; line-height: 1.1;
     letter-spacing: var(--tracking-display); margin: 14px 0 16px;
   }
-  .body { font-size: var(--text-body-lg); }
+  .body { font-size: var(--text-body-lg); max-width: var(--measure); }
   .body a { color: var(--accent); text-decoration: underline; }
+  @media (max-width: 620px) {
+    .nf { padding: var(--space-gap-xl) var(--space-section-x) 64px; }
+  }
 </style>

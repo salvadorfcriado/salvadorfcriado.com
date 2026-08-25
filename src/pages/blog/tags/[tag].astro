@@ -1,10 +1,16 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../../layouts/Base.astro';
-import Cover from '../../../components/Cover.astro';
+import PostRow from '../../../components/PostRow.astro';
 import TagChips from '../../../components/TagChips.astro';
-import { SITE } from '../../../consts';
+import { SITE, BLOG } from '../../../consts';
 import { sortByVocabulary, tagLabel, tagBlurb } from '../../../tags';
+import type { TagSlug } from '../../../tags';
+
+/* An archive this thin has no unique content beyond a heading and one link —
+   it is a near-duplicate of the row already on /blog/. Keep the page (it is
+   linked from every chip row) but keep it out of the index until it grows. */
+const THIN_ARCHIVE = 3;
 
 export async function getStaticPaths() {
   const posts = (await getCollection('blog', ({ data }) => !data.draft))
@@ -12,7 +18,7 @@ export async function getStaticPaths() {
 
   /* Paths come from the posts, never from the vocabulary: a tag nobody uses
      must not produce a page for a crawler to find and a reader to land on. */
-  const inUse = sortByVocabulary([...new Set(posts.flatMap((p) => p.data.tags))]);
+  const inUse = sortByVocabulary([...new Set(posts.flatMap((p) => p.data.tags))]) as TagSlug[];
 
   return inUse.map((tag) => ({
     params: { tag },
@@ -23,37 +29,52 @@ export async function getStaticPaths() {
 const { tag, tagsInUse, posts } = Astro.props;
 const label = tagLabel(tag);
 const blurb = tagBlurb(tag);
-const fmt = (d) => d.toISOString().slice(0, 10);
+const thin = posts.length < THIN_ARCHIVE;
 
-const jsonLd = [{
-  '@type': 'CollectionPage',
-  '@id': `${SITE.url}/blog/tags/${tag}/#archive`,
-  name: `${label} — Field notes`,
-  description: blurb,
-  url: `${SITE.url}/blog/tags/${tag}/`,
-  isPartOf: { '@id': `${SITE.url}/blog/#blog` },
-  about: label,
-  inLanguage: 'en',
-  mainEntity: {
-    '@type': 'ItemList',
-    numberOfItems: posts.length,
-    itemListElement: posts.map((p, i) => ({
-      '@type': 'ListItem',
-      position: i + 1,
-      url: `${SITE.url}/blog/${p.id}/`,
-      name: p.data.title,
-    })),
+const jsonLd = [
+  {
+    '@type': 'CollectionPage',
+    '@id': `${SITE.url}/blog/tags/${tag}/#archive`,
+    name: `${label} — ${BLOG.name}`,
+    description: blurb,
+    url: `${SITE.url}/blog/tags/${tag}/`,
+    isPartOf: { '@id': `${SITE.url}/blog/#blog` },
+    about: label,
+    inLanguage: 'en',
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: posts.length,
+      itemListElement: posts.map((p, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: `${SITE.url}/blog/${p.id}/`,
+        name: p.data.title,
+      })),
+    },
   },
-}];
+  {
+    '@type': 'BreadcrumbList',
+    '@id': `${SITE.url}/blog/tags/${tag}/#breadcrumb`,
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE.url}/` },
+      { '@type': 'ListItem', position: 2, name: BLOG.name, item: `${SITE.url}/blog/` },
+      { '@type': 'ListItem', position: 3, name: label },
+    ],
+  },
+];
 ---
 <Base
-  title={`${label} — Field notes | Salvador F. Criado`}
+  title={`${label} — ${BLOG.name}`}
+  ogTitle={label}
   description={blurb}
   path={`/blog/tags/${tag}/`}
+  ogImage={`/img/og/tags/${tag}.png`}
+  ogImageAlt={`${label} — ${BLOG.name}`}
+  noindex={thin}
   navSlot="back"
   jsonLd={jsonLd}
 >
-  <section class="masthead-lite">
+  <section class="masthead-lite graph-paper">
     <div class="wrap inner">
       <p class="label">Topic</p>
       <h1>{label}</h1>
@@ -70,54 +91,28 @@ const jsonLd = [{
 
   <section class="section">
     <div class="wrap">
-      <ul class="rows">
-        {posts.map((p) => (
-          <li>
-            <a class="row" href={`/blog/${p.id}/`}>
-              <Cover title={p.data.title} tag={p.data.tags[0]} variant="thumb" />
-              <div class="body">
-                <p class="meta">
-                  <time datetime={fmt(p.data.date)}>{fmt(p.data.date)}</time>
-                  {' · '}{p.data.tags.map(tagLabel).join(' · ')}{' · '}{p.data.readingTime} min
-                </p>
-                <h2>{p.data.title}</h2>
-                <p class="excerpt">{p.data.excerpt}</p>
-              </div>
-            </a>
-          </li>
-        ))}
+      <ul class="post-rows" role="list">
+        {posts.map((p) => <PostRow post={p} />)}
       </ul>
     </div>
   </section>
 </Base>
 
 <style>
-  .masthead-lite {
-    border-bottom: 1px solid var(--border);
-    background-color: var(--bg);
-    background-image:
-      repeating-linear-gradient(to right, var(--grid-line) 0 1px, transparent 1px var(--grid-cell)),
-      repeating-linear-gradient(to bottom, var(--grid-line) 0 1px, transparent 1px var(--grid-cell));
-  }
-  .inner { padding: 56px var(--space-section-x) 44px; }
+  .masthead-lite { border-bottom: 1px solid var(--border); padding: 0 var(--space-section-x); }
+  .inner { padding: var(--space-gap-xl) 0 44px; }
   .inner h1 {
-    font-size: 52px; font-weight: 700; letter-spacing: var(--tracking-display);
+    font-size: var(--text-h1-lg); font-weight: 700; letter-spacing: var(--tracking-display);
     line-height: 1; margin: 14px 0 12px;
   }
-  .sub { font-size: var(--text-body-lg); max-width: 620px; }
+  .sub { font-size: var(--text-body-lg); max-width: var(--measure); }
   .count { font-family: var(--font-mono); font-size: var(--text-label); color: var(--text-muted); margin-top: 12px; }
   .count a { color: var(--accent); }
   .filters { margin-top: 22px; }
-  .rows { list-style: none; margin: 0; padding: 0; }
-  .rows li { border-top: 1px solid var(--border); }
-  .rows li:first-child { border-top: 0; }
-  .row { display: flex; gap: var(--space-gap-lg); align-items: flex-start; padding: 24px 0; }
-  .meta { font-family: var(--font-mono); font-size: var(--text-label); color: var(--text-muted); }
-  .row h2 { font-size: 20px; font-weight: 600; letter-spacing: var(--tracking-tight); margin: 6px 0 8px; }
-  .row:hover h2 { color: var(--accent); }
-  .excerpt { font-size: var(--text-body-sm); max-width: 640px; }
+  .post-rows { list-style: none; margin: 0; padding: 0; }
+  .post-rows li { border-top: 1px solid var(--border); }
+  .post-rows li:first-child { border-top: 0; }
   @media (max-width: 620px) {
-    .inner h1 { font-size: 40px; }
-    .row { flex-direction: column; gap: var(--space-gap); }
+    .inner h1 { font-size: var(--text-h1); }
   }
 </style>

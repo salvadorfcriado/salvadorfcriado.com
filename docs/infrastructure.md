@@ -16,8 +16,11 @@ Custom domains on the project: `salvadorfcriado.com`, `www.salvadorfcriado.com`.
 npm run build
 # 1. Fetch a short-lived upload token (account credentials required):
 #    GET /accounts/{account_id}/pages/projects/salvadorfcriado/upload-token
-node scripts/pages-upload.mjs "<jwt>"
-# 2. Create the deployment with the manifest written to /tmp/pages-deploy.json:
+CF_PAGES_UPLOAD_JWT="<jwt>" node scripts/pages-upload.mjs
+#    (the token may still be passed as argv[1], but it then lands in shell
+#     history and is visible in `ps` for the duration of the upload)
+# 2. Create the deployment with the manifest the script writes into the system
+#    temp directory — it prints the path:
 #    POST /accounts/{account_id}/pages/projects/salvadorfcriado/deployments
 #    multipart/form-data, fields: manifest, branch
 ```
@@ -78,9 +81,28 @@ out in applications and indexed; without the rule those links land on the 404 pa
 **Response header rules** (`http_response_headers_transform`):
 
 1. All responses — `X-Frame-Options: SAMEORIGIN`, `Permissions-Policy`,
-   `Strict-Transport-Security: max-age=31536000; includeSubDomains`.
+   `Strict-Transport-Security: max-age=31536000; includeSubDomains`,
+   `X-Content-Type-Options: nosniff`,
+   `Referrer-Policy: strict-origin-when-cross-origin`.
 2. `/_astro/*` and `/fonts/*` — `Cache-Control: public, max-age=31536000, immutable`.
    Both are content-hashed, so a stale cache entry is impossible.
+3. `starts_with(http.request.uri.path, "/img/")` — `Cache-Control: public, max-age=604800`.
+   **Not** `immutable`: unlike the fonts, these filenames are not content-hashed. The
+   portrait is the landing page's LCP resource and was falling through to the Pages
+   default (`max-age=0, must-revalidate`), so it revalidated on every navigation.
+
+**Content Security Policy.** The site ships zero executable JavaScript and contacts zero
+third-party origins, so a near-maximal policy applies cleanly:
+
+```
+default-src 'self'; script-src 'none'; style-src 'self' 'unsafe-inline';
+img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'
+```
+
+`style-src 'unsafe-inline'` is required — Astro inlines every page's CSS into a `<style>`
+block. The `application/ld+json` blocks are data, not script, and are unaffected by
+`script-src 'none'`. **Stage this on a preview deployment and load every page before
+promoting it**; a CSP that blocks the stylesheet renders an unstyled site to everyone.
 
 ## Zone `scdap.es` (`61bae31e491c1729b1add2e7e1d70776`)
 
@@ -88,6 +110,20 @@ No longer a site. `AAAA` at `100::` (the discard prefix) for the apex and `www`,
 proxied — the placeholder that gets traffic to the edge so the redirect rule can answer.
 Nothing is ever fetched from an origin.
 
-**Redirect rule**: everything → `https://salvadorfcriado.com/services/`, 301.
+**Redirect rule** — *inverted 2026-08-25*. `scdap.es` now serves the consulting page
+itself; it no longer points into the hiring domain.
+
+The old rule sent the whole zone to `salvadorfcriado.com/services/`, which meant the
+commercial surface lived on — and was indexed under — the domain whose only audience is
+employers. A recruiter searching the brand name got the landing page *and* a consultancy
+pitch quoting hourly rates and ES invoicing. That page has been deleted from this repo.
+
+Two rules are needed:
+
+1. On zone `salvadorfcriado.com`: `starts_with(http.request.uri.path, "/services")` → 301 to
+   `https://scdap.es/`. Keeps every link already in the wild working, and keeps the
+   commercial content off this domain's index.
+2. On zone `scdap.es`: remove the blanket redirect and point the zone at wherever the
+   consulting page is deployed.
 
 Email routing on the zone is untouched and still delivers.
