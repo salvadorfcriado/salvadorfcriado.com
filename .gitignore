@@ -17,7 +17,15 @@ dist/
 # Generated per-post OG cards — see scripts/og.mjs
 public/img/og/
 
-openspec
+# OpenSpec working area. The in-flight change folders are scratch; the main
+# specs and the archived changes are the durable record and were tracked before
+# this rule arrived — `openspec/specs/build-integrity` and friends were dropped
+# in silence by the blanket form, so it names the contents instead.
+openspec/*
+!openspec/specs/
+!openspec/changes/
+openspec/changes/*
+!openspec/changes/archive/
 
 # Per-run pipeline state and its environment file — see agent/README.md
 agent/state/
