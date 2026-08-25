@@ -31,7 +31,7 @@ jobs:
       # into ~/.cache/puppeteer. The ubuntu-latest image already ships the
       # shared libraries headless Chrome needs, so no apt packages are required.
       - name: Cache Puppeteer browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/puppeteer
           key: puppeteer-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
