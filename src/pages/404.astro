@@ -1,0 +1,28 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base
+  title="Not found — Salvador F. Criado"
+  description="That page does not exist."
+  path="/404"
+  navSlot="back"
+>
+  <section class="nf">
+    <p class="label">404</p>
+    <h1>That page isn't here.</h1>
+    <p class="body">
+      It may have moved, or it may never have existed. The
+      <a href="/">landing page</a> and the <a href="/blog/">field notes</a> are both intact.
+    </p>
+  </section>
+</Base>
+
+<style>
+  .nf { max-width: 720px; margin: 0 auto; padding: 96px var(--space-section-x) 120px; }
+  .nf h1 {
+    font-size: 40px; font-weight: 700; line-height: 1.1;
+    letter-spacing: var(--tracking-display); margin: 14px 0 16px;
+  }
+  .body { font-size: var(--text-body-lg); }
+  .body a { color: var(--accent); text-decoration: underline; }
+</style>

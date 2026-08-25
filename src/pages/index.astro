@@ -88,7 +88,7 @@ const jsonLd = [{
   <!-- ── 01 / WHAT I DO ───────────────────────────────────────────────── -->
   <section class="section" id="what">
     <div class="wrap">
-      <p class="label">01 / What I do</p>
+      <h2 class="label">01 / What I do</h2>
       <div class="three">
         {doing.map((d) => (
           <div class="col"><h3>{d.t}</h3><p>{d.d}</p></div>
@@ -101,7 +101,7 @@ const jsonLd = [{
   <section class="section alt" id="work">
     <div class="wrap">
       <div class="head">
-        <p class="label">02 / Selected work</p>
+        <h2 class="label">02 / Selected work</h2>
         <a class="mono-link" href={SITE.linkedin} rel="noopener" target="_blank">full history on linkedin →</a>
       </div>
       <ul class="rows">
@@ -124,7 +124,7 @@ const jsonLd = [{
           <p class="label">03 / Writing</p>
           <h2 class="h2">Field notes</h2>
         </div>
-        <a class="mono-link accent-link" href="/blog">ALL POSTS →</a>
+        <a class="mono-link accent-link" href="/blog/">ALL POSTS →</a>
       </div>
       <div class="writing-grid">
         {featured && (
@@ -161,7 +161,7 @@ const jsonLd = [{
   <section class="section" id="about">
     <div class="wrap about-grid">
       <div>
-        <p class="label">04 / About</p>
+        <h2 class="label">04 / About</h2>
         <p class="about-body">
           Hands-on engineer in Granada, Spain — remote worldwide. I started close to the metal, on PCBs and
           firmware, and worked up through distributed systems to platforms carrying a hundred thousand users.
