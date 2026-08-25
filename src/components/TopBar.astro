@@ -1,0 +1,42 @@
+---
+import { SITE } from '../consts';
+const { navSlot = 'anchors' } = Astro.props;
+---
+<nav class="topbar">
+  <div class="wrap bar">
+    <a class="brand" href="/">SALVADORFCRIADO.COM</a>
+    {navSlot === 'anchors' ? (
+      <div class="links">
+        <a href="/#work">WORK</a><span class="dot">·</span>
+        <a href="/#writing">WRITING</a><span class="dot">·</span>
+        <a href="/#about">ABOUT</a>
+      </div>
+    ) : (
+      <div class="links"><a href="/">← BACK TO HOME</a></div>
+    )}
+    <div class="status">GRANADA, ES · REMOTE</div>
+  </div>
+</nav>
+
+<style>
+  .topbar { border-bottom: 1px solid var(--border); }
+  .bar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--space-gap);
+    padding: 13px var(--space-section-x);
+    font-family: var(--font-mono);
+    font-size: var(--text-meta);
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+  }
+  .brand { font-weight: 600; color: var(--ink); }
+  .brand:hover, .links a:hover { color: var(--accent); }
+  .links { display: flex; gap: 8px; }
+  .dot { opacity: 0.4; }
+  .status { color: var(--text-muted); white-space: nowrap; }
+  @media (max-width: 760px) {
+    .bar { flex-wrap: wrap; row-gap: 8px; justify-content: flex-start; }
+    .status { margin-left: auto; }
+  }
+  @media (max-width: 460px) { .status { display: none; } }
+</style>

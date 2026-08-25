@@ -1,0 +1,16 @@
+/* Spacing, radii, layout */
+:root {
+  --space-section-y: 52px;  /* hero uses 64px */
+  --space-section-x: 48px;
+  --space-gap-lg: 32px;
+  --space-gap: 16px;
+  --space-gap-sm: 8px;
+
+  --radius-btn: 6px;
+  --radius-card: 10px;
+  --radius-img: 12px;
+  --radius-chip: 5px;
+
+  --grid-cell: 28px;        /* graph-paper pitch (27px gap + 1px line) */
+  --content-max: 1240px;
+}

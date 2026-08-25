@@ -1,0 +1,18 @@
+/* Color tokens — one accent (violet), cool neutrals (hue 280). Never introduce a second strong color. */
+:root {
+  --bg: #ffffff;
+  --surface: oklch(0.975 0.004 280);           /* alternating section background */
+  --surface-page: oklch(0.985 0.003 280);      /* page-level tinted background */
+  --ink: oklch(0.2 0.02 280);                  /* headings, footer/CTA dark band bg */
+  --text-muted: oklch(0.46 0.02 280);          /* body & secondary text */
+  --accent: #6d5ae6;                           /* brand violet — CTAs, labels, highlights */
+  --accent-strong: #5445b8;                    /* hover on accent; text over accent-soft */
+  --accent-soft: rgba(109, 90, 230, 0.08);     /* chips, highlight fills */
+  --accent-on-ink: #a99bf5;                    /* accent usable over --ink */
+  --on-accent: #ffffff;
+  --on-ink: #ffffff;
+  --on-ink-muted: rgba(255, 255, 255, 0.6);
+  --border: oklch(0.2 0.02 280 / 0.1);         /* hairline rules & card borders */
+  --border-strong: oklch(0.2 0.02 280 / 0.18); /* outline buttons, inputs */
+  --grid-line: oklch(0.2 0.02 280 / 0.045);    /* graph-paper overlay lines */
+}

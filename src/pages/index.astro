@@ -1,0 +1,298 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Cover from '../components/Cover.astro';
+import { SITE } from '../consts';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const [featured, ...rest] = posts;
+const next2 = rest.slice(0, 2);
+
+const fmt = (d) => d.toISOString().slice(0, 10);
+
+const stats = [
+  { n: '8+ yrs', c: 'systems in production' },
+  { n: '<2.0s', c: 'voice loop, end to end' },
+  { n: '100k+', c: 'users on my platforms' },
+  { n: '3', c: 'clouds: aws · azure · on-prem' },
+];
+
+const doing = [
+  { t: 'Agents & LLM apps', d: 'RAG, tool calling, voice loops under 2 s — grounded in your data.' },
+  { t: 'Serving & evaluation', d: 'vLLM, quantisation, Langfuse tracing — quality you can measure.' },
+  { t: 'Cloud backbone', d: 'Deep AWS, expert Terraform, Kubernetes — the platform under the model.' },
+];
+
+const work = [
+  {
+    t: 'On-prem voice agents for an enterprise contact centre',
+    d: "Agentic flows, RAG on Qdrant and a streaming voice loop under 2 s — on the client's own GPU, data never leaves the network.",
+    y: '2025—26',
+  },
+  {
+    t: 'AWS → Azure migration of a 100k-user e-learning platform',
+    d: 'Multi-tenant platform lifted onto AKS: Terraform, Azure DevOps pipelines, and a cutover with the service staying up.',
+    y: '2026',
+  },
+];
+
+const jsonLd = [{
+  '@type': 'WebSite',
+  '@id': `${SITE.url}/#website`,
+  url: SITE.url,
+  name: SITE.name,
+  description: 'AI & Platform Engineer — LLM applications, agents, real-time voice, and the cloud backbone underneath.',
+  publisher: { '@id': `${SITE.url}/#person` },
+  inLanguage: 'en',
+}];
+---
+<Base
+  title="Salvador F. Criado — AI & Platform Engineer | LLM Applications & Distributed Systems"
+  description="AI & Platform Engineer in Granada, Spain, remote worldwide. LLM applications, agents and real-time voice, on a backbone of AWS, Terraform and Kubernetes."
+  path="/"
+  jsonLd={jsonLd}
+>
+  <!-- ── Hero ─────────────────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="label eyebrow">[ AI &amp; PLATFORM ENGINEER — LLM APPS · AGENTS · DISTRIBUTED SYSTEMS ]</p>
+        <h1 class="masthead">Salvador<br /><span class="accent">F. Criado</span></h1>
+        <p class="lead">
+          I build production AI end to end — agents, RAG and real-time voice, plus the GPU inference
+          underneath. Eight years owning distributed systems on AWS and Azure that stay up.
+        </p>
+        <div class="cta">
+          <a class="btn btn-primary" href={SITE.linkedin} rel="me noopener" target="_blank">Connect on LinkedIn</a>
+          <a class="btn btn-outline" href={SITE.cv}>CV (PDF)</a>
+          <span class="cta-note">granada, es · remote · utc+1</span>
+        </div>
+      </div>
+      <figure class="portrait">
+        <img src="/img/portrait.webp" width="390" height="460" alt="Salvador F. Criado" fetchpriority="high" />
+        <figcaption>fig. 01 — the engineer</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ── Stat strip ───────────────────────────────────────────────────── -->
+  <section class="strip">
+    <div class="wrap strip-grid">
+      {stats.map((s) => (
+        <div class="cell"><span class="n">{s.n}</span><span class="c">{s.c}</span></div>
+      ))}
+    </div>
+  </section>
+
+  <!-- ── 01 / WHAT I DO ───────────────────────────────────────────────── -->
+  <section class="section" id="what">
+    <div class="wrap">
+      <p class="label">01 / What I do</p>
+      <div class="three">
+        {doing.map((d) => (
+          <div class="col"><h3>{d.t}</h3><p>{d.d}</p></div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 02 / SELECTED WORK ───────────────────────────────────────────── -->
+  <section class="section alt" id="work">
+    <div class="wrap">
+      <div class="head">
+        <p class="label">02 / Selected work</p>
+        <a class="mono-link" href={SITE.linkedin} rel="noopener" target="_blank">full history on linkedin →</a>
+      </div>
+      <ul class="rows">
+        {work.map((w) => (
+          <li class="row">
+            <h3>{w.t}</h3>
+            <p>{w.d}</p>
+            <span class="year">{w.y}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <!-- ── 03 / WRITING ─────────────────────────────────────────────────── -->
+  <section class="section" id="writing">
+    <div class="wrap">
+      <div class="head">
+        <div>
+          <p class="label">03 / Writing</p>
+          <h2 class="h2">Field notes</h2>
+        </div>
+        <a class="mono-link accent-link" href="/blog">ALL POSTS →</a>
+      </div>
+      <div class="writing-grid">
+        {featured && (
+          <a class="feature" href={`/blog/${featured.id}/`}>
+            <Cover title={featured.data.title} tag={featured.data.tag} variant="featured" />
+            <p class="meta">
+              <time datetime={fmt(featured.data.date)}>{fmt(featured.data.date)}</time>
+              {' · '}{featured.data.tag}{' · '}{featured.data.readingTime} min
+            </p>
+            <h3 class="feature-title">{featured.data.title}</h3>
+            <p class="excerpt">{featured.data.excerpt}</p>
+          </a>
+        )}
+        <div class="side">
+          {next2.map((p) => (
+            <a class="side-row" href={`/blog/${p.id}/`}>
+              <Cover title={p.data.title} tag={p.data.tag} variant="thumb" />
+              <div>
+                <p class="meta">
+                  <time datetime={fmt(p.data.date)}>{fmt(p.data.date)}</time>
+                  {' · '}{p.data.tag}{' · '}{p.data.readingTime} min
+                </p>
+                <h3 class="side-title">{p.data.title}</h3>
+              </div>
+            </a>
+          ))}
+          <p class="rss-hint">New notes land in the <a href="/rss.xml">RSS feed</a>. No newsletter, no signup.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 04 / ABOUT ───────────────────────────────────────────────────── -->
+  <section class="section" id="about">
+    <div class="wrap about-grid">
+      <div>
+        <p class="label">04 / About</p>
+        <p class="about-body">
+          Hands-on engineer in Granada, Spain — remote worldwide. I started close to the metal, on PCBs and
+          firmware, and worked up through distributed systems to platforms carrying a hundred thousand users.
+          Applied AI is the newest layer on that stack, not a replacement for it: I still reach for Terraform
+          and a profiler before I reach for a bigger model.
+          <span class="certs">AWS DevOps Pro · Agentic AI (DeepLearning.AI) · CSM.</span>
+        </p>
+        <div class="cta">
+          <a class="btn btn-primary" href={SITE.linkedin} rel="me noopener" target="_blank">Connect on LinkedIn</a>
+          <a class="btn btn-outline" href={`mailto:${SITE.email}`}>{SITE.email}</a>
+        </div>
+      </div>
+      <div class="ambient" aria-hidden="true"></div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  /* Hero */
+  .hero {
+    border-bottom: 1px solid var(--border);
+    background-color: var(--bg);
+    background-image:
+      repeating-linear-gradient(to right, var(--grid-line) 0 1px, transparent 1px var(--grid-cell)),
+      repeating-linear-gradient(to bottom, var(--grid-line) 0 1px, transparent 1px var(--grid-cell));
+  }
+  .hero-grid {
+    display: grid; grid-template-columns: 1fr 390px; gap: 56px; align-items: start;
+    padding: 64px var(--space-section-x) 56px;
+  }
+  .eyebrow { margin-bottom: 18px; }
+  .masthead {
+    font-size: var(--text-masthead); font-weight: 700; line-height: 0.98;
+    letter-spacing: var(--tracking-display); margin-bottom: 22px;
+  }
+  .accent { color: var(--accent); }
+  .lead { font-size: var(--text-body-lg); line-height: 1.6; max-width: 520px; }
+  .cta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-gap); margin-top: 28px; }
+  .cta-note { font-family: var(--font-mono); font-size: var(--text-label); color: var(--text-muted); }
+  .portrait { position: relative; margin: 0; }
+  .portrait img {
+    width: 390px; height: 460px; object-fit: cover;
+    border-radius: var(--radius-img); background: var(--surface);
+  }
+  .portrait figcaption {
+    position: absolute; left: 12px; bottom: 12px;
+    background: var(--ink); color: var(--on-ink);
+    font-family: var(--font-mono); font-size: 10.5px;
+    padding: 6px 10px; border-radius: var(--radius-chip);
+  }
+
+  /* Stat strip */
+  .strip { border-bottom: 1px solid var(--border); }
+  .strip-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
+  .cell {
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 20px var(--space-section-x);
+    border-left: 1px solid var(--border);
+  }
+  .cell:first-child { border-left: 0; }
+  .n { font-family: var(--font-mono); font-weight: 600; font-size: 24px; color: var(--ink); }
+  .c { font-family: var(--font-mono); font-size: var(--text-meta); color: var(--text-muted); }
+
+  /* Shared */
+  .alt { background: var(--surface); }
+  .head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-gap-lg); }
+  .h2 { font-size: var(--text-h2); font-weight: 700; letter-spacing: var(--tracking-tight); margin-top: 8px; }
+  .accent-link { color: var(--accent); }
+
+  /* 01 */
+  .three { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 28px; }
+  .col { padding: 0 var(--space-gap-lg); border-left: 1px solid var(--border); }
+  .col:first-child { border-left: 0; padding-left: 0; }
+  .col h3 { font-size: var(--text-card-title); font-weight: 600; margin-bottom: 8px; }
+  .col p { font-size: var(--text-body-sm); line-height: 1.6; }
+
+  /* 02 */
+  .rows { list-style: none; margin: 24px 0 0; padding: 0; }
+  .row {
+    display: grid; grid-template-columns: 1fr 1.5fr 120px; gap: var(--space-gap-lg);
+    padding: 20px 0; border-top: 1px solid var(--border); align-items: baseline;
+  }
+  .row h3 { font-size: 16px; font-weight: 600; }
+  .row p { font-size: var(--text-body-sm); }
+  .year { font-family: var(--font-mono); font-size: var(--text-label); text-align: right; color: var(--text-muted); }
+
+  /* 03 */
+  .writing-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 36px; margin-top: 28px; }
+  .feature-title { font-size: 24px; font-weight: 700; letter-spacing: var(--tracking-tight); margin: 8px 0; }
+  .feature:hover .feature-title, .side-row:hover .side-title { color: var(--accent); }
+  .meta { font-family: var(--font-mono); font-size: var(--text-label); color: var(--text-muted); margin-top: 14px; }
+  .excerpt { font-size: var(--text-body); }
+  .side { display: flex; flex-direction: column; gap: 22px; }
+  .side-row { display: flex; gap: var(--space-gap); align-items: flex-start; }
+  .side-row .meta { margin-top: 0; }
+  .side-title { font-size: 16.5px; font-weight: 600; line-height: 1.3; margin-top: 6px; }
+  .rss-hint {
+    border: 1px dashed var(--border-strong); border-radius: 8px; padding: 14px 16px;
+    font-family: var(--font-mono); font-size: var(--text-label); line-height: 1.6;
+  }
+  .rss-hint a { color: var(--accent); text-decoration: underline; }
+
+  /* 04 */
+  .about-grid { display: grid; grid-template-columns: 1fr 380px; gap: 56px; align-items: start; }
+  .about-body { font-size: 15px; line-height: 1.7; max-width: 560px; margin-top: 18px; }
+  .certs { display: block; margin-top: 12px; color: var(--ink); font-weight: 500; }
+  .ambient {
+    height: 240px; border-radius: var(--radius-card);
+    background-color: var(--surface);
+    background-image:
+      repeating-linear-gradient(to right, var(--grid-line) 0 1px, transparent 1px var(--grid-cell)),
+      repeating-linear-gradient(to bottom, var(--grid-line) 0 1px, transparent 1px var(--grid-cell));
+    border: 1px solid var(--border);
+  }
+
+  /* Responsive */
+  @media (max-width: 960px) {
+    .hero-grid, .about-grid { grid-template-columns: 1fr; gap: var(--space-gap-lg); }
+    .portrait img { width: 100%; max-height: 420px; }
+    .strip-grid { grid-template-columns: repeat(2, 1fr); }
+    .cell:nth-child(3) { border-left: 0; }
+    .cell:nth-child(n+3) { border-top: 1px solid var(--border); }
+    .three, .writing-grid { grid-template-columns: 1fr; gap: 24px; }
+    .col { border-left: 0; padding: 0; }
+    .row { grid-template-columns: 1fr; gap: 6px; }
+    .year { text-align: left; }
+  }
+  @media (max-width: 560px) {
+    .strip-grid { grid-template-columns: 1fr; }
+    .cell { border-left: 0; border-top: 1px solid var(--border); }
+    .cell:first-child { border-top: 0; }
+    .side-row { flex-direction: column; }
+  }
+</style>

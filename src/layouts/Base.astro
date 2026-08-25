@@ -1,0 +1,72 @@
+---
+import '../styles/global.css';
+import { SITE, ENTITY_PARAGRAPH, KNOWS_ABOUT } from '../consts';
+import TopBar from '../components/TopBar.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  path: string;
+  ogImage?: string;
+  navSlot?: 'anchors' | 'back';
+  jsonLd?: Record<string, unknown>[];
+}
+
+const { title, description, path, ogImage = '/img/og-default.png', navSlot = 'anchors', jsonLd = [] } = Astro.props;
+const canonical = new URL(path, SITE.url).href;
+const ogUrl = new URL(ogImage, SITE.url).href;
+
+const person = {
+  '@type': 'Person',
+  '@id': `${SITE.url}/#person`,
+  name: SITE.name,
+  alternateName: SITE.legalName,
+  jobTitle: SITE.jobTitle,
+  url: SITE.url,
+  email: `mailto:${SITE.email}`,
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: SITE.locality,
+    addressRegion: SITE.region,
+    addressCountry: SITE.country,
+  },
+  sameAs: [SITE.linkedin, SITE.github],
+  knowsAbout: KNOWS_ABOUT,
+};
+
+const graph = { '@context': 'https://schema.org', '@graph': [person, ...jsonLd] };
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" type="application/rss+xml" title={`${SITE.name} — Field notes`} href="/rss.xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE.domain} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogUrl} />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <script type="application/ld+json" set:html={JSON.stringify(graph)} />
+  </head>
+  <body>
+    <TopBar navSlot={navSlot} />
+    <main>
+      <slot />
+    </main>
+    <Footer entity={ENTITY_PARAGRAPH} />
+  </body>
+</html>

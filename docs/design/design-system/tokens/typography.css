@@ -1,0 +1,19 @@
+/* Type tokens — display: Space Grotesk · body: IBM Plex Sans · data/labels: IBM Plex Mono. Max 3 families, no others. */
+:root {
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+
+  --text-masthead: 88px;   /* hero name · 700 · line 0.98 · tracking -0.045em */
+  --text-h2: 28px;         /* section titles · 700 · tracking -0.02em */
+  --text-card-title: 17px; /* 600, Space Grotesk */
+  --text-body-lg: 17px;    /* hero/lead paragraphs · line 1.6 */
+  --text-body: 14px;       /* default body · line 1.6-1.7 */
+  --text-body-sm: 13.5px;
+  --text-label: 12px;      /* mono section labels · 500 · tracking 0.06em */
+  --text-meta: 11px;       /* mono metadata, footers */
+
+  --tracking-display: -0.045em;
+  --tracking-tight: -0.02em;
+  --tracking-label: 0.06em;
+}

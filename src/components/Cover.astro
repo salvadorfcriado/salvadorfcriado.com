@@ -1,0 +1,53 @@
+---
+/* Typographic cover — the sanctioned fallback when a post has no image.
+   Pure CSS so it uses the real brand webfonts and costs zero requests. */
+const { title, tag, variant = 'featured' } = Astro.props;
+---
+<div class:list={['cover', variant]} aria-hidden="true">
+  <span class="tag">{tag}</span>
+  {variant === 'featured' && <span class="ttl">{title}</span>}
+</div>
+
+<style>
+  .cover {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 10px;
+    background-color: var(--surface);
+    background-image:
+      repeating-linear-gradient(to right, var(--grid-line) 0 1px, transparent 1px var(--grid-cell)),
+      repeating-linear-gradient(to bottom, var(--grid-line) 0 1px, transparent 1px var(--grid-cell));
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .cover::after {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; background: var(--accent);
+  }
+  .tag {
+    font-family: var(--font-mono);
+    font-size: var(--text-meta);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .ttl {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 22px;
+    line-height: 1.15;
+    letter-spacing: var(--tracking-tight);
+    color: var(--ink);
+    opacity: 0.22;
+  }
+  .featured { height: 300px; border-radius: var(--radius-card); padding: 24px 28px; }
+  .thumb { width: 132px; height: 96px; border-radius: 8px; padding: 10px 12px; flex: none; }
+  .thumb .tag { font-size: 10px; }
+  @media (max-width: 620px) {
+    .featured { height: 200px; }
+    .featured .ttl { font-size: 18px; }
+  }
+</style>

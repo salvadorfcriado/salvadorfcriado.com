@@ -1,0 +1,124 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { SITE } from '../../consts';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const d = post.data;
+const iso = d.date.toISOString();
+const day = iso.slice(0, 10);
+
+const jsonLd = [{
+  '@type': 'BlogPosting',
+  '@id': `${SITE.url}/blog/${post.id}/#post`,
+  headline: d.title,
+  description: d.excerpt,
+  datePublished: iso,
+  dateModified: iso,
+  author: { '@id': `${SITE.url}/#person` },
+  publisher: { '@id': `${SITE.url}/#person` },
+  mainEntityOfPage: `${SITE.url}/blog/${post.id}/`,
+  keywords: d.tag,
+  inLanguage: 'en',
+}];
+---
+<Base
+  title={`${d.title} — Salvador F. Criado`}
+  description={d.excerpt}
+  path={`/blog/${post.id}/`}
+  navSlot="back"
+  jsonLd={jsonLd}
+>
+  <article class="post">
+    <header class="head">
+      <p class="meta">
+        <time datetime={day}>{day}</time>{' · '}{d.tag}{' · '}{d.readingTime} min read
+      </p>
+      <h1>{d.title}</h1>
+      <p class="summary">{d.excerpt}</p>
+    </header>
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    <footer class="end">
+      <a class="btn btn-primary" href={SITE.linkedin} rel="me noopener" target="_blank">Connect on LinkedIn</a>
+      <div class="author">
+        <img src="/img/portrait.webp" width="52" height="52" alt="" loading="lazy" />
+        <p>
+          <strong>Salvador F. Criado</strong> — AI &amp; Platform Engineer, Granada (Spain), remote.
+          LLM applications, agents, real-time voice, vLLM serving, AWS · Azure · Terraform · Kubernetes.
+        </p>
+      </div>
+    </footer>
+  </article>
+</Base>
+
+<style>
+  .post { max-width: 720px; margin: 0 auto; padding: 56px var(--space-section-x) 64px; }
+  .meta { font-family: var(--font-mono); font-size: var(--text-label); color: var(--text-muted); }
+  .head h1 {
+    font-size: 40px; font-weight: 700; line-height: 1.1;
+    letter-spacing: var(--tracking-display); margin: 14px 0 16px;
+  }
+  .summary { font-size: var(--text-body-lg); line-height: 1.6; }
+  .head { padding-bottom: 28px; border-bottom: 1px solid var(--border); }
+
+  .prose { font-size: 17px; line-height: 1.75; margin-top: 32px; }
+  .prose :global(h2) {
+    font-size: 24px; font-weight: 700; letter-spacing: var(--tracking-tight);
+    margin: 44px 0 14px; line-height: 1.25;
+  }
+  .prose :global(h3) { font-size: 19px; font-weight: 600; margin: 32px 0 10px; }
+  .prose :global(p) { margin: 0 0 18px; }
+  .prose :global(ul), .prose :global(ol) { margin: 0 0 18px; padding-left: 22px; }
+  .prose :global(li) { margin-bottom: 8px; }
+  .prose :global(a) { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+  .prose :global(a:hover) { color: var(--accent-strong); }
+  .prose :global(strong) { color: var(--ink); font-weight: 600; }
+  .prose :global(hr) { border: 0; border-top: 1px solid var(--border); margin: 40px 0; }
+  .prose :global(blockquote) {
+    margin: 0 0 18px; padding: 4px 0 4px 20px;
+    border-left: 3px solid var(--accent); color: var(--text-muted);
+  }
+  .prose :global(code) {
+    font-family: var(--font-mono); font-size: 0.88em;
+    background: var(--accent-soft); color: var(--accent-strong);
+    padding: 2px 5px; border-radius: 4px;
+  }
+  .prose :global(pre) {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-card); padding: 18px 20px;
+    overflow-x: auto; margin: 0 0 22px; font-size: 13.5px; line-height: 1.6;
+  }
+  .prose :global(pre code) { background: none; color: var(--ink); padding: 0; font-size: inherit; }
+  .prose :global(table) {
+    width: 100%; border-collapse: collapse; margin: 0 0 22px; font-size: var(--text-body-sm);
+    display: block; overflow-x: auto;
+  }
+  .prose :global(th), .prose :global(td) {
+    border-bottom: 1px solid var(--border); padding: 10px 12px; text-align: left; vertical-align: top;
+  }
+  .prose :global(th) {
+    font-family: var(--font-mono); font-size: var(--text-meta); font-weight: 600;
+    letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--ink);
+  }
+  .prose :global(img) { border-radius: var(--radius-card); margin: 0 0 22px; }
+
+  .end { margin-top: 48px; padding-top: 28px; border-top: 1px solid var(--border); }
+  .author { display: flex; gap: var(--space-gap); align-items: flex-start; margin-top: 28px; }
+  .author img { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; flex: none; }
+  .author p { font-size: var(--text-body-sm); line-height: 1.6; }
+  .author strong { color: var(--ink); }
+  @media (max-width: 620px) {
+    .head h1 { font-size: 30px; }
+    .prose { font-size: 16px; }
+  }
+</style>

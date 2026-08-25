@@ -1,0 +1,116 @@
+@import "./fonts.css";
+
+/* ── Tokens — ported verbatim from design-system/tokens/ ────────────────── */
+:root {
+  --bg: #ffffff;
+  --surface: oklch(0.975 0.004 280);
+  --surface-page: oklch(0.985 0.003 280);
+  --ink: oklch(0.2 0.02 280);
+  --text-muted: oklch(0.46 0.02 280);
+  --accent: #6d5ae6;
+  --accent-strong: #5445b8;
+  --accent-soft: rgba(109, 90, 230, 0.08);
+  --accent-on-ink: #a99bf5;
+  --on-accent: #ffffff;
+  --on-ink: #ffffff;
+  --on-ink-muted: rgba(255, 255, 255, 0.6);
+  --border: oklch(0.2 0.02 280 / 0.1);
+  --border-strong: oklch(0.2 0.02 280 / 0.18);
+  --grid-line: oklch(0.2 0.02 280 / 0.045);
+
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+
+  --text-masthead: 88px;
+  --text-h2: 28px;
+  --text-card-title: 17px;
+  --text-body-lg: 17px;
+  --text-body: 14px;
+  --text-body-sm: 13.5px;
+  --text-label: 12px;
+  --text-meta: 11px;
+
+  --tracking-display: -0.045em;
+  --tracking-tight: -0.02em;
+  --tracking-label: 0.06em;
+
+  --space-section-y: 52px;
+  --space-section-x: 48px;
+  --space-gap-lg: 32px;
+  --space-gap: 16px;
+  --space-gap-sm: 8px;
+
+  --radius-btn: 6px;
+  --radius-card: 10px;
+  --radius-img: 12px;
+  --radius-chip: 5px;
+
+  --grid-cell: 28px;
+  --content-max: 1240px;
+}
+
+/* ── Reset ──────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; display: block; }
+a { color: inherit; text-decoration: none; transition: color 150ms; }
+h1, h2, h3 { font-family: var(--font-display); color: var(--ink); margin: 0; }
+p { margin: 0; }
+
+/* ── Layout primitives ──────────────────────────────────────────────────── */
+.wrap { max-width: var(--content-max); margin: 0 auto; }
+.section {
+  padding: var(--space-section-y) var(--space-section-x);
+  border-bottom: 1px solid var(--border);
+}
+.label {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-weight: 500;
+  letter-spacing: var(--tracking-label);
+  color: var(--accent);
+  text-transform: uppercase;
+}
+.mono-link {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+.mono-link:hover { color: var(--accent); }
+
+/* ── Buttons ────────────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 12px 22px;
+  border-radius: var(--radius-btn);
+  transition: background-color 150ms, color 150ms;
+}
+.btn-primary { background: var(--accent); color: var(--on-accent); }
+.btn-primary:hover { background: var(--accent-strong); }
+.btn-outline { background: var(--bg); color: var(--ink); border: 1px solid var(--border-strong); }
+.btn-outline:hover { background: var(--accent-soft); color: var(--accent-strong); }
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 960px) {
+  :root { --space-section-x: 24px; --text-masthead: 56px; }
+  .btn { min-height: 44px; }
+}
+@media (max-width: 560px) {
+  :root { --text-masthead: 44px; }
+}
