@@ -1,10 +1,11 @@
 ---
 /* Typographic cover — the sanctioned fallback when a post has no image.
    Pure CSS so it uses the real brand webfonts and costs zero requests. */
+import { tagLabel } from '../tags';
 const { title, tag, variant = 'featured' } = Astro.props;
 ---
 <div class:list={['cover', variant]} aria-hidden="true">
-  <span class="tag">{tag}</span>
+  <span class="tag">{tagLabel(tag)}</span>
   {variant === 'featured' && <span class="ttl">{title}</span>}
 </div>
 

@@ -1,7 +1,9 @@
 ---
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import TagChips from '../../components/TagChips.astro';
 import { SITE } from '../../consts';
+import { tagLabel } from '../../tags';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog', ({ data }) => !data.draft);
@@ -14,6 +16,11 @@ const d = post.data;
 const iso = d.date.toISOString();
 const day = iso.slice(0, 10);
 
+/* A hand-made cover wins; otherwise the card scripts/og.mjs rendered for this
+   slug. Never the site-wide default — that is what made every article unfurl
+   with the same picture. */
+const ogImage = d.cover ?? `/img/og/${post.id}.png`;
+
 const jsonLd = [{
   '@type': 'BlogPosting',
   '@id': `${SITE.url}/blog/${post.id}/#post`,
@@ -24,7 +31,9 @@ const jsonLd = [{
   author: { '@id': `${SITE.url}/#person` },
   publisher: { '@id': `${SITE.url}/#person` },
   mainEntityOfPage: `${SITE.url}/blog/${post.id}/`,
-  keywords: d.tag,
+  image: new URL(ogImage, SITE.url).href,
+  keywords: d.tags.map(tagLabel).join(', '),
+  about: d.tags.map((t) => ({ '@type': 'Thing', name: tagLabel(t) })),
   inLanguage: 'en',
 }];
 ---
@@ -32,16 +41,21 @@ const jsonLd = [{
   title={`${d.title} — Salvador F. Criado`}
   description={d.excerpt}
   path={`/blog/${post.id}/`}
+  ogImage={ogImage}
+  ogImageAlt={d.title}
+  ogType="article"
+  article={{ publishedTime: iso, tags: d.tags.map(tagLabel) }}
   navSlot="back"
   jsonLd={jsonLd}
 >
   <article class="post">
     <header class="head">
       <p class="meta">
-        <time datetime={day}>{day}</time>{' · '}{d.tag}{' · '}{d.readingTime} min read
+        <time datetime={day}>{day}</time>{' · '}{d.readingTime} min read
       </p>
       <h1>{d.title}</h1>
       <p class="summary">{d.excerpt}</p>
+      <TagChips tags={d.tags} variant="inline" />
     </header>
 
     <div class="prose">
@@ -68,7 +82,7 @@ const jsonLd = [{
     font-size: 40px; font-weight: 700; line-height: 1.1;
     letter-spacing: var(--tracking-display); margin: 14px 0 16px;
   }
-  .summary { font-size: var(--text-body-lg); line-height: 1.6; }
+  .summary { font-size: var(--text-body-lg); line-height: 1.6; margin-bottom: 18px; }
   .head { padding-bottom: 28px; border-bottom: 1px solid var(--border); }
 
   .prose { font-size: 17px; line-height: 1.75; margin-top: 32px; }

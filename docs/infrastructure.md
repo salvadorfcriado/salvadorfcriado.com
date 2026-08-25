@@ -22,6 +22,10 @@ node scripts/pages-upload.mjs "<jwt>"
 #    multipart/form-data, fields: manifest, branch
 ```
 
+`npm run build` runs `scripts/og.mjs` first (the `prebuild` hook), which regenerates one
+1200×630 Open Graph card per published post into `public/img/og/`. Those cards are build
+output and are git-ignored; they exist in `dist/` because the build put them there.
+
 `scripts/pages-upload.mjs` hashes `dist/` the way wrangler does —
 `blake3(base64(content) + extension)`, hex, first 32 characters — asks the API which
 hashes are missing, uploads only those, and writes the manifest.
@@ -29,6 +33,22 @@ hashes are missing, uploads only those, and writes the manifest.
 To deploy with `wrangler pages deploy dist` instead, create an API token with
 **Cloudflare Pages: Edit** and export it as `CLOUDFLARE_API_TOKEN`. That is the shorter
 path, and the one to wire into CI.
+
+### Sharing an article — the order matters
+
+LinkedIn fetches a URL's Open Graph data the **first** time that URL is pasted into the post
+composer, and caches the result against the URL. Editing the post afterwards does not refresh
+it, and neither does redeploying the site. Get the order wrong once and that article is stuck
+with the wrong preview.
+
+1. Deploy.
+2. Open `https://salvadorfcriado.com/img/og/<slug>.png` and confirm the card is there.
+3. Run the article URL through <https://www.linkedin.com/post-inspector/>. It refetches and
+   shows exactly what will be rendered.
+4. Only then compose the post.
+
+For a URL that was already shared with the wrong card, step 3 is the fix — there is no other
+way to invalidate it.
 
 ### Why not `_headers` and `_redirects`
 
@@ -50,6 +70,10 @@ look authoritative and do nothing.
 **Redirect rule** (`http_request_dynamic_redirect`): `http.host eq "www.salvadorfcriado.com"`
 → 301 to `concat("https://salvadorfcriado.com", http.request.uri.path)`, query preserved.
 The apex is canonical; without this every page is reachable at two hosts.
+
+**Redirect rule** — retired CV: `starts_with(http.request.uri.path, "/cv/")` → 301 to
+`https://salvadorfcriado.com/`. The PDF was removed from the site, and the URL had been sent
+out in applications and indexed; without the rule those links land on the 404 page.
 
 **Response header rules** (`http_response_headers_transform`):
 

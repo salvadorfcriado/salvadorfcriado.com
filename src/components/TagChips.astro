@@ -1,0 +1,54 @@
+---
+/* Topic chips. Plain links to prerendered archives — no JavaScript, so they
+   work for a crawler and for a reader with scripting off, and every topic has a
+   URL that can be cited. `current` marks the archive you are already on. */
+import { tagLabel } from '../tags';
+
+interface Props {
+  tags: readonly string[];
+  current?: string;
+  /* 'row' on index/archive pages, 'inline' in a post header. */
+  variant?: 'row' | 'inline';
+}
+
+const { tags, current, variant = 'row' } = Astro.props;
+---
+<ul class:list={['chips', variant]}>
+  {tags.map((slug) => (
+    <li>
+      <a
+        class:list={['chip', { active: slug === current }]}
+        href={`/blog/tags/${slug}/`}
+        aria-current={slug === current ? 'page' : undefined}
+      >{tagLabel(slug)}</a>
+    </li>
+  ))}
+</ul>
+
+<style>
+  .chips {
+    display: flex; flex-wrap: wrap; gap: var(--space-gap-sm);
+    list-style: none; margin: 0; padding: 0;
+  }
+  .chip {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: var(--bg);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-chip);
+    padding: 5px 10px;
+    white-space: nowrap;
+  }
+  .chip:hover { color: var(--accent-strong); border-color: var(--accent); background: var(--accent-soft); }
+  .chip.active {
+    color: var(--on-accent);
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .chip.active:hover { background: var(--accent-strong); border-color: var(--accent-strong); color: var(--on-accent); }
+  .inline .chip { font-size: var(--text-meta); padding: 4px 8px; }
+</style>

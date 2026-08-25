@@ -7,7 +7,6 @@ export const SITE = {
   email: 'mail@salvadorfcriado.com',
   linkedin: 'https://linkedin.com/in/salvadorfcriado',
   github: 'https://github.com/salvadorfcriado',
-  cv: '/cv/salvador-criado-cv.pdf',
   locality: 'Granada',
   region: 'Andalusia',
   country: 'ES',

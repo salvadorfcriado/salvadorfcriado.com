@@ -1,7 +1,7 @@
 ---
 title: "The half of your GenAI system nobody put on call"
 date: 2026-09-10
-tag: infra
+tags: [llmops, data-engineering, rag]
 readingTime: 8
 excerpt: "Nobody's RAG system breaks — it quietly stops being right. The data jobs nobody wrote down, the three mechanisms that make them safe, and what to put on a dashboard."
 ---

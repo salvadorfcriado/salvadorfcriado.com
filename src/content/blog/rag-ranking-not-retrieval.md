@@ -1,7 +1,7 @@
 ---
 title: "Your RAG doesn't have a retrieval problem. It has a ranking problem."
 date: 2026-08-27
-tag: rag
+tags: [rag, search-retrieval, evaluation]
 readingTime: 9
 excerpt: "The document was in the index and the answer was still wrong. How to tell a retrieval failure from a ranking failure, in what order to fix them, and what each fix costs."
 ---

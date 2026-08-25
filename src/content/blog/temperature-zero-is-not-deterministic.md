@@ -1,7 +1,7 @@
 ---
 title: "Temperature Zero Is Not Deterministic"
 date: 2026-09-03
-tag: stacks
+tags: [llm-serving, evaluation, governance]
 readingTime: 11
 excerpt: "Same prompt, same model, different answer. The mechanism behind non-determinism at temperature zero, the arithmetic that kills agent pilots, and what to do about it."
 ---

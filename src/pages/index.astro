@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import Cover from '../components/Cover.astro';
 import { SITE } from '../consts';
+import { tagLabel } from '../tags';
 
 const posts = (await getCollection('blog', ({ data }) => !data.draft))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
@@ -65,7 +66,7 @@ const jsonLd = [{
         </p>
         <div class="cta">
           <a class="btn btn-primary" href={SITE.linkedin} rel="me noopener" target="_blank">Connect on LinkedIn</a>
-          <a class="btn btn-outline" href={SITE.cv}>CV (PDF)</a>
+          <a class="btn btn-outline" href="/blog/">Read the field notes</a>
           <span class="cta-note">granada, es · remote · utc+1</span>
         </div>
       </div>
@@ -129,10 +130,10 @@ const jsonLd = [{
       <div class="writing-grid">
         {featured && (
           <a class="feature" href={`/blog/${featured.id}/`}>
-            <Cover title={featured.data.title} tag={featured.data.tag} variant="featured" />
+            <Cover title={featured.data.title} tag={featured.data.tags[0]} variant="featured" />
             <p class="meta">
               <time datetime={fmt(featured.data.date)}>{fmt(featured.data.date)}</time>
-              {' · '}{featured.data.tag}{' · '}{featured.data.readingTime} min
+              {' · '}{featured.data.tags.map(tagLabel).join(' · ')}{' · '}{featured.data.readingTime} min
             </p>
             <h3 class="feature-title">{featured.data.title}</h3>
             <p class="excerpt">{featured.data.excerpt}</p>
@@ -141,11 +142,11 @@ const jsonLd = [{
         <div class="side">
           {next2.map((p) => (
             <a class="side-row" href={`/blog/${p.id}/`}>
-              <Cover title={p.data.title} tag={p.data.tag} variant="thumb" />
+              <Cover title={p.data.title} tag={p.data.tags[0]} variant="thumb" />
               <div>
                 <p class="meta">
                   <time datetime={fmt(p.data.date)}>{fmt(p.data.date)}</time>
-                  {' · '}{p.data.tag}{' · '}{p.data.readingTime} min
+                  {' · '}{tagLabel(p.data.tags[0])}{' · '}{p.data.readingTime} min
                 </p>
                 <h3 class="side-title">{p.data.title}</h3>
               </div>

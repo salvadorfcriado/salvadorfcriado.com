@@ -4,18 +4,46 @@ import { SITE, ENTITY_PARAGRAPH, KNOWS_ABOUT } from '../consts';
 import TopBar from '../components/TopBar.astro';
 import Footer from '../components/Footer.astro';
 
+interface ArticleMeta {
+  publishedTime: string;
+  modifiedTime?: string;
+  tags?: readonly string[];
+}
+
 interface Props {
   title: string;
   description: string;
   path: string;
   ogImage?: string;
+  /* Cards are 1200×630. Declare the size so a crawler picks the large layout
+     without having to fetch and decode the image first. */
+  ogImageWidth?: number;
+  ogImageHeight?: number;
+  ogImageAlt?: string;
+  ogType?: 'website' | 'article';
+  article?: ArticleMeta;
   navSlot?: 'anchors' | 'back';
   jsonLd?: Record<string, unknown>[];
 }
 
-const { title, description, path, ogImage = '/img/og-default.png', navSlot = 'anchors', jsonLd = [] } = Astro.props;
+const {
+  title,
+  description,
+  path,
+  ogImage = '/img/og-default.png',
+  ogImageWidth = 1200,
+  ogImageHeight = 630,
+  ogImageAlt,
+  ogType = 'website',
+  article,
+  navSlot = 'anchors',
+  jsonLd = [],
+} = Astro.props;
+
 const canonical = new URL(path, SITE.url).href;
+/* Absolute — a relative og:image is silently dropped by most unfurlers. */
 const ogUrl = new URL(ogImage, SITE.url).href;
+const imageAlt = ogImageAlt ?? title;
 
 const person = {
   '@type': 'Person',
@@ -48,16 +76,29 @@ const graph = { '@context': 'https://schema.org', '@graph': [person, ...jsonLd] 
     <link rel="alternate" type="application/rss+xml" title={`${SITE.name} — Field notes`} href="/rss.xml" />
     <link rel="sitemap" href="/sitemap-index.xml" />
 
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content={SITE.domain} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogUrl} />
+    <meta property="og:image:width" content={String(ogImageWidth)} />
+    <meta property="og:image:height" content={String(ogImageHeight)} />
+    <meta property="og:image:alt" content={imageAlt} />
+    <meta property="og:locale" content="en_GB" />
+    {article && (
+      <>
+        <meta property="article:published_time" content={article.publishedTime} />
+        <meta property="article:modified_time" content={article.modifiedTime ?? article.publishedTime} />
+        <meta property="article:author" content={SITE.name} />
+        {article.tags?.map((t) => <meta property="article:tag" content={t} />)}
+      </>
+    )}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogUrl} />
+    <meta name="twitter:image:alt" content={imageAlt} />
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <script type="application/ld+json" set:html={JSON.stringify(graph)} />
