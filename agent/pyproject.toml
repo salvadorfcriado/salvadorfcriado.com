@@ -1,0 +1,23 @@
+# The content pipeline is Python inside a TypeScript repository. `agent/README.md`
+# opens with why. Nothing here touches the Node toolchain: the Cloudflare Pages
+# build command is `npm run build`, and `.py` files are inert to it.
+
+[project]
+name = "site-content-agent"
+version = "0.1.0"
+description = "Staged, gated pipeline that drafts and publishes posts to this site"
+requires-python = ">=3.11"
+dependencies = [
+    "pyyaml>=6.0",      # frontmatter parsing, the same YAML the content schema reads
+    "jsonschema>=4.0",  # backend responses validated before they reach the state file
+]
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# The package is `agent`, rooted one level up, so `python -m agent.gates.run`
+# from the repository root and `pytest` from here import the same modules.
+pythonpath = [".."]
+addopts = "-q"

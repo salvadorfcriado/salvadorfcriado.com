@@ -1,0 +1,70 @@
+{
+  "note": "Operator-approved, published pieces. The calibration set: a gate that rejects one of these is miscalibrated, and test_goldens.py says so.",
+  "articles": [
+    {
+      "file": "articles/rag-ranking-not-retrieval.md",
+      "origin": "src/content/blog/rag-ranking-not-retrieval.md",
+      "published": "2026-08-27",
+      "approved": "2026-08-27",
+      "live_url": "https://salvadorfcriado.com/blog/rag-ranking-not-retrieval/",
+      "deviations": {},
+      "status": "published and live"
+    },
+    {
+      "file": "articles/temperature-zero-is-not-deterministic.md",
+      "origin": "src/content/blog/temperature-zero-is-not-deterministic.md",
+      "published": "2026-09-03",
+      "approved": "2026-09-03",
+      "live_url": "https://salvadorfcriado.com/blog/temperature-zero-is-not-deterministic/",
+      "deviations": {},
+      "status": "published and live"
+    },
+    {
+      "file": "articles/the-half-nobody-put-on-call.md",
+      "origin": "src/content/blog/the-half-nobody-put-on-call.md",
+      "published": "2026-09-10",
+      "approved": "2026-09-10",
+      "live_url": "https://salvadorfcriado.com/blog/the-half-nobody-put-on-call/",
+      "deviations": {},
+      "status": "published and live"
+    }
+  ],
+  "posts": [
+    {
+      "file": "posts/rag-ranking-not-retrieval.en.md",
+      "lang": "en",
+      "origin": "<hub>/linkedin/pieces/2026-08-27_rag-ranking/post.md",
+      "approved": "2026-08-27",
+      "pairs_with": "articles/rag-ranking-not-retrieval.md",
+      "deviations": {
+        "post.em_dashes": "Drafted before the one-em-dash rule was adopted on 2026-08-24. Two remain. Not edited here: this is the operator's draft, and editing it to pass would fabricate an approval it never got."
+      },
+      "status": "draft, unpublished"
+    },
+    {
+      "file": "posts/temperature-zero-is-not-deterministic.en.md",
+      "lang": "en",
+      "origin": "<hub>/linkedin/pieces/2026-09-03_predictable-ai/post.md",
+      "approved": "2026-09-03",
+      "pairs_with": "articles/temperature-zero-is-not-deterministic.md",
+      "deviations": {
+        "post.hook_words": "20-word hook against the 15-word limit adopted 2026-08-24. The hook is the strongest in the set and shortening it is an editorial decision, not a mechanical one.",
+        "post.body_chars": "1178 characters against the 1400 floor adopted 2026-08-24, when the band moved up from the old 200-260 word rule. The draft predates the move.",
+        "post.markdown": "Carries a fenced ASCII table of the reliability arithmetic. LinkedIn renders no Markdown, so the backticks would publish literally. A genuine defect the gate found, not a threshold disagreement — this one should be fixed in the draft rather than tolerated."
+      },
+      "status": "draft, unpublished"
+    },
+    {
+      "file": "posts/the-half-nobody-put-on-call.en.md",
+      "lang": "en",
+      "origin": "<hub>/linkedin/pieces/2026-09-10_genai-data-pipeline/post.md",
+      "approved": "2026-09-10",
+      "pairs_with": "articles/the-half-nobody-put-on-call.md",
+      "deviations": {
+        "post.em_dashes": "Three em dashes against the limit of one, same 2026-08-24 rule. Same reasoning as the RAG post."
+      },
+      "status": "draft, unpublished"
+    }
+  ],
+  "deviations_policy": "A declared deviation is not a waiver. test_goldens.py asserts a golden fails EXACTLY its declared deviations: a new failure fails the suite, and a deviation that stops firing also fails it, because a stale exception is how a golden set quietly stops being a brake. Every entry names the rule it breaks and why it was not edited away."
+}

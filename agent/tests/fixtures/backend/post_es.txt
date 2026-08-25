@@ -1,0 +1,19 @@
+El panel decía 4,1 segundos. El ticket decía que el asistente se quedaba congelado.
+
+Los dos tenían razón. Un endpoint que hace streaming no tiene una latencia. Tiene tres, y el panel estaba pintando la menos útil de las tres.
+
+El tiempo hasta el primer token es la espera en cola más el prefill. Es la pausa antes de que aparezca nada, y es la única parte que el usuario nota cuando todavía no hay texto en pantalla.
+
+La latencia entre tokens es el hueco entre un token y el siguiente una vez que arranca la generación. Se percibe como velocidad de escritura y empeora con cuántas secuencias está decodificando el servidor a la vez, no con lo difícil que sea cada una.
+
+La duración total es esas dos cosas más la longitud de la respuesta. Y la longitud de la respuesta es una propiedad de la respuesta, no de tu servicio. Cambias el prompt de forma que las respuestas se alarguen y el p99 empeora mientras el servidor hace exactamente lo mismo que ayer.
+
+Por eso "va lento" son cinco fallos distintos. Una pausa larga antes del primer carácter es cola o prefill. Que se arrastre con carga es ocupación del batch. Rápido para un equipo y lento para otro es bloqueo detrás de generaciones largas. Lento desde que se tocó el prompt es una caché de prefijo que dejó de acertar. Los parones a mitad de respuesta son expulsiones cuando se llena la caché.
+
+Ninguno de los cinco se ve en un percentil de duración. Los cinco se ven con una hora de instrumentación, y es la misma hora tengas el que tengas.
+
+La separación que hay que hacer primero: el tiempo hasta el primer token, partido en espera en cola y cómputo de prefill. Si manda la cola, tienes un problema de admisión y una GPU más grande no acelera a quien está esperando. Si manda el prefill y el prompt lleva un prefijo compartido largo, es un problema de caché, y sale mucho más barato que el cambio de modelo que ibas a planificar.
+
+Pinta el primer token contra la longitud de entrada, y la latencia entre tokens contra la concurrencia. Si las dos curvas salen planas, lo lento no es la capa de serving.
+
+#LLMServing #vLLM #Observabilidad

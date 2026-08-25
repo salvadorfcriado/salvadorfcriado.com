@@ -1,0 +1,19 @@
+The dashboard said 4.1 seconds. The ticket said the assistant felt frozen.
+
+Both were right. A streaming endpoint does not have a latency. It has three, and the dashboard was graphing the least useful one.
+
+Time to first token is queue wait plus prefill. That is the pause before anything appears, and it is the only part a user feels before there is something on the screen.
+
+Inter-token latency is the gap between tokens once generation starts. It reads as typing speed, and it degrades with how many sequences the server is decoding at once, not with how hard any one of them is.
+
+Total duration is those two plus the length of the answer. The length of the answer is a property of the answer, not of your service. Ship a prompt change that makes replies longer and your p99 gets worse while the server does exactly what it did the day before.
+
+Which is why "it is slow" is five different bugs. A long pause before the first character is queue wait or prefill. Crawling under load is batch occupancy. Fast for one team and slow for another is head-of-line blocking behind long generations. Slow since the prompt changed is a prefix cache that stopped hitting. Random mid-answer stalls are preemption when the cache fills.
+
+None of those are visible in a duration percentile. All of them are visible after about an hour of instrumentation, and it is the same hour whichever one you have.
+
+The split to do first: time to first token into queue wait and prefill compute. Queue wait dominating is an admission problem, and a bigger GPU does not help a request that is waiting. Prefill dominating on a prompt with a long shared prefix is a caching problem, and that is cheaper than every model change you were about to schedule.
+
+Graph first-token latency against input length, and inter-token latency against concurrency. If both come out flat, the serving layer is not what is slow.
+
+#LLMServing #vLLM #Observability

@@ -4,14 +4,34 @@ dist/
 .DS_Store
 *.log
 
-# Local agent config, not site code
-.claude/
+# Local agent config, not site code. Contents rather than the directory:
+# git does not descend into an excluded directory, so a negation below
+# would never fire.
+.claude/*
 
 # Secrets
 .env
 .env.*
+!agent/.env.example
 
 # Generated per-post OG cards — see scripts/og.mjs
 public/img/og/
 
 openspec
+
+# Per-run pipeline state and its environment file — see agent/README.md
+agent/state/
+agent/.env
+agent/.venv/
+agent/**/__pycache__/
+agent/.pytest_cache/
+
+# The pipeline's own Claude Code surface IS part of the repository: the hook
+# that enforces the gates, the critic and the skill are what make the flow
+# reproducible for anyone who clones it. Everything else under .claude/ stays
+# local, which is why the blanket ignore above is negated one path at a time.
+!.claude/settings.json
+!.claude/agents/
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/piece/

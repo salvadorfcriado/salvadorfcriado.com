@@ -13,6 +13,22 @@ npm run build    # static output in dist/
 
 ## Publishing a post
 
+There are two paths, and they produce the same thing: a Markdown file in
+`src/content/blog/` that the build validates. Neither is privileged — a generated post
+and a hand-written one are indistinguishable by frontmatter shape and render through
+the same template.
+
+**By hand.** Drop the file in. Fully supported, documented below, and the fastest route
+for a short piece.
+
+**Through the pipeline.** `agent/` is a staged, gated pipeline that drafts a post and
+its LinkedIn package, enforces the publishing rules as executable gates rather than
+prose, stops for approval three times, and opens a pull request. It ends at handoff:
+nothing posts to LinkedIn. See [`agent/README.md`](agent/README.md) — it is Python, it
+is inert to `npm run build`, and deleting it changes nothing about the site.
+
+### By hand
+
 Drop a Markdown file into `src/content/blog/`. Frontmatter:
 
 ```yaml

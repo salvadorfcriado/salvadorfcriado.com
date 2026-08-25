@@ -1,0 +1,28 @@
+{
+  "scores": {
+    "actionable": 4,
+    "decision_rule": 5,
+    "falsifiable": 4,
+    "honest_limit": 5,
+    "earns_length": 4
+  },
+  "total": 22,
+  "findings": [
+    {
+      "dimension": "falsifiable",
+      "problem": "The fourth step of the order of operations says prefix caching 'usually' moves first-token latency more than a smaller model would, with no condition under which that would be false. As written the claim cannot fail, so it reads as preference rather than mechanism.",
+      "fix": "State the condition it depends on: the share of the prompt that is a fixed prefix. Say that below a small shared fraction the caching win is negligible and the model swap is the larger lever, so a reader can tell which side of it they are on."
+    },
+    {
+      "dimension": "actionable",
+      "problem": "'Where the queue actually is' spends its first paragraph explaining continuous batching before the reader is given anything to do. The three consequences that follow are the usable part, and they arrive after the reader has been asked to absorb a mechanism.",
+      "fix": "Open the section with the check the mechanism justifies, then explain the mechanism as the reason the check works."
+    },
+    {
+      "dimension": "earns_length",
+      "problem": "The closing paragraph of the trap section restates the load-test point in the input-length case without adding a new check.",
+      "fix": "Leave it: it is one sentence and it names a second dimension of the same distribution. Flagged only because a second restatement of the same shape would cost the section its place."
+    }
+  ],
+  "verdict": "pass"
+}

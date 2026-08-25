@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "PY=\"$CLAUDE_PROJECT_DIR/agent/.venv/bin/python\"; [ -x \"$PY\" ] || PY=python3; exec \"$PY\" \"$CLAUDE_PROJECT_DIR/agent/hooks/stop_gate.py\""
+          }
+        ]
+      }
+    ]
+  }
+}
