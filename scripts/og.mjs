@@ -21,7 +21,7 @@
       until the whole corpus is known good. An earlier version validated inside
       the render loop, after wiping the output directory — a typo in the newest
       post's tags therefore deleted the cards of every post that came before it.
-   2. Diff against public/img/og/.manifest.json and decide what to render.
+   2. Diff against .astro/og-manifest.json and decide what to render.
    3. Launch Chromium only if that set is non-empty.
 
    ── Frontmatter contract ─────────────────────────────────────────────────────
@@ -78,7 +78,11 @@ const ROOT = join(HERE, '..');
 const POSTS_DIR = join(ROOT, 'src', 'content', 'blog');
 const OUT_DIR = join(ROOT, 'public', 'img', 'og');
 const TAG_OUT_DIR = join(OUT_DIR, 'tags');
-const MANIFEST = join(OUT_DIR, '.manifest.json');
+/* Build state, NOT a site asset. It lived in OUT_DIR and was therefore copied
+   into dist/ and published — Pages served /img/og/.manifest.json to the world.
+   Keep it out of public/. */
+const CACHE_DIR = join(ROOT, '.astro');
+const MANIFEST = join(CACHE_DIR, 'og-manifest.json');
 const DOMAIN = 'SALVADORFCRIADO.COM';
 
 const TITLE_MAX = 150;   // beyond this the card clips — see the h1 line-clamp
@@ -249,14 +253,14 @@ function readManifest() {
   } catch {
     /* A corrupt manifest costs one full re-render, which is recoverable.
        Trusting it would ship stale cards, which is not. */
-    console.warn('og: .manifest.json is unreadable — re-rendering everything');
+    console.warn('og: og-manifest.json is unreadable — re-rendering everything');
     return { posts: {}, tags: {} };
   }
 }
 
-/* Targeted deletion, never a wholesale rmSync of OUT_DIR: the manifest lives in
-   there, and wiping it would make every build a full rebuild — which is how the
-   incremental path silently stops being incremental. */
+/* Targeted deletion, never a wholesale rmSync of OUT_DIR: a hand-placed cover
+   or any other file that is not ours must survive, and a wipe would also make
+   every build a full rebuild. */
 function pruneStale(dir, keep) {
   if (!existsSync(dir)) return [];
   const removed = [];
@@ -353,6 +357,7 @@ async function main() {
 
   mkdirSync(OUT_DIR, { recursive: true });
   mkdirSync(TAG_OUT_DIR, { recursive: true });
+  mkdirSync(CACHE_DIR, { recursive: true });
 
   const dropped = [
     ...pruneStale(OUT_DIR, new Set(posts.map((p) => p.slug))),

@@ -13,3 +13,5 @@ dist/
 
 # Generated per-post OG cards — see scripts/og.mjs
 public/img/og/
+
+openspec

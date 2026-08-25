@@ -53,6 +53,16 @@ with the wrong preview.
 For a URL that was already shared with the wrong card, step 3 is the fix — there is no other
 way to invalidate it.
 
+### Cache after a deploy
+
+Direct upload replaces the asset set but does not purge the edge. HTML is served with
+`s-maxage=604800`, so a page that changed shape — or one that was deleted — can stay up for
+a week. A redirect rule beats the cache because redirects run first; nothing else does.
+
+Purging needs a token with `Zone.Cache Purge`. The API token wired into the Cloudflare MCP
+does **not** have it (`10000: Authentication error` on `POST /zones/{id}/purge_cache`), so a
+purge is a dashboard action, or needs a token with that permission added.
+
 ### Why not `_headers` and `_redirects`
 
 Pages honours those files when it builds from a connected repository. Passing them as
@@ -78,15 +88,26 @@ The apex is canonical; without this every page is reachable at two hosts.
 `https://salvadorfcriado.com/`. The PDF was removed from the site, and the URL had been sent
 out in applications and indexed; without the rule those links land on the 404 page.
 
+**Redirect rule** — retired services page: `starts_with(http.request.uri.path, "/services/")`
+or `= "/services"` → 301 to `https://salvadorfcriado.com/`. **Applied 2026-08-25.** Two jobs:
+it keeps inbound links working, and it defeats the edge cache — the old consulting page was
+still being served with `age: 16458` under an `s-maxage=604800`, so deleting it from the
+deployment alone would have left it up for a week. Redirect rules run before cache.
+
+*This is a placeholder target.* It should point at `https://scdap.es/` the moment that zone
+serves its own consulting page. It cannot today: `scdap.es` still redirects here, so the
+pair would loop.
+
 **Response header rules** (`http_response_headers_transform`):
 
 1. All responses — `X-Frame-Options: SAMEORIGIN`, `Permissions-Policy`,
    `Strict-Transport-Security: max-age=31536000; includeSubDomains`,
    `X-Content-Type-Options: nosniff`,
-   `Referrer-Policy: strict-origin-when-cross-origin`.
+   `Referrer-Policy: strict-origin-when-cross-origin`. **Applied 2026-08-25.**
 2. `/_astro/*` and `/fonts/*` — `Cache-Control: public, max-age=31536000, immutable`.
    Both are content-hashed, so a stale cache entry is impossible.
 3. `starts_with(http.request.uri.path, "/img/")` — `Cache-Control: public, max-age=604800`.
+   **Applied 2026-08-25.**
    **Not** `immutable`: unlike the fonts, these filenames are not content-hashed. The
    portrait is the landing page's LCP resource and was falling through to the Pages
    default (`max-age=0, must-revalidate`), so it revalidated on every navigation.
@@ -103,6 +124,7 @@ img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'
 block. The `application/ld+json` blocks are data, not script, and are unaffected by
 `script-src 'none'`. **Stage this on a preview deployment and load every page before
 promoting it**; a CSP that blocks the stylesheet renders an unstyled site to everyone.
+**Not applied** — this is the one header change that is not safe to ship unverified.
 
 ## Zone `scdap.es` (`61bae31e491c1729b1add2e7e1d70776`)
 
@@ -118,12 +140,20 @@ commercial surface lived on — and was indexed under — the domain whose only 
 employers. A recruiter searching the brand name got the landing page *and* a consultancy
 pitch quoting hourly rates and ES invoicing. That page has been deleted from this repo.
 
-Two rules are needed:
+**Applied 2026-08-25, as an interim.** The blanket rule now sends the zone to
+`https://salvadorfcriado.com/` rather than to `/services/`, which no longer exists — one hop
+instead of bouncing through a URL that itself redirects.
 
-1. On zone `salvadorfcriado.com`: `starts_with(http.request.uri.path, "/services")` → 301 to
-   `https://scdap.es/`. Keeps every link already in the wild working, and keeps the
-   commercial content off this domain's index.
-2. On zone `scdap.es`: remove the blanket redirect and point the zone at wherever the
-   consulting page is deployed.
+This is a placeholder, and it is the wrong destination on purpose: someone who types
+`scdap.es` is looking for consulting and lands on a hiring page. There is nowhere better to
+send them until the consulting page is deployed. When it is, two edits close this out:
+
+1. On zone `scdap.es`: point the zone at its own page instead of here.
+2. On zone `salvadorfcriado.com`: retarget the `/services` redirect from the apex to
+   `https://scdap.es/`. Do these together — either one alone is a redirect loop.
+
+The page's last content is at `5924801:src/pages/services.astro`. It carries two claims that
+fail `career.md` and must be corrected before it goes back up: `10,000 signals/sec` against a
+documented 1,000+ (career.md:196), and a `2023—25` date range that matches no engagement.
 
 Email routing on the zone is untouched and still delivers.
