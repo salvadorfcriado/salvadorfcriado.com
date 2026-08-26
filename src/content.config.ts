@@ -1,4 +1,7 @@
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
+/* Not `z` from 'astro:content' — that re-export is deprecated as of Astro 7 and
+   goes away in 8. 'astro/zod' is the replacement Astro's own deprecation names. */
+import { z } from 'astro/zod';
 import { glob } from 'astro/loaders';
 import { TAG_SLUGS } from './tags';
 
