@@ -544,7 +544,9 @@ def probe_deployed_url(slug: str) -> ProbeResult:
             time.sleep(config.DEPLOY_PROBE_INTERVAL_SECONDS)
         made.append(url)
 
-        request = urlrequest.Request(url, method="GET")
+        request = urlrequest.Request(
+            url, method="GET", headers={"User-Agent": config.DEPLOY_PROBE_USER_AGENT}
+        )
         try:
             with urlrequest.urlopen(
                 request, timeout=config.DEPLOY_PROBE_TIMEOUT_SECONDS

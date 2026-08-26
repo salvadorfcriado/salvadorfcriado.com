@@ -360,6 +360,14 @@ PUBLISH_BASE_BRANCH = "main"
 
 # The deployed-URL probe. LinkedIn caches a preview on first fetch, so the
 # handoff is withheld until the article's own URL answers.
+# The site sits behind Cloudflare, whose bot management answers `403` to
+# urllib's default `Python-urllib/3.x` User-Agent. Unset, the probe therefore
+# never sees its own article and the handoff is withheld for ever — a 403 that
+# looks exactly like "not deployed yet". Identify the probe honestly instead.
+DEPLOY_PROBE_USER_AGENT = (
+    "salvadorfcriado-content-pipeline/1.0 (+https://github.com/salvadorfcriado/salvadorfcriado.com)"
+)
+
 DEPLOY_PROBE_TIMEOUT_SECONDS = 10
 DEPLOY_PROBE_ATTEMPTS = 20
 DEPLOY_PROBE_INTERVAL_SECONDS = 15

@@ -425,3 +425,28 @@ def test_no_code_path_posts_to_linkedin():
         hits += [f"{path}: {n}" for n in needles if n in text]
 
     assert hits == [], f"LinkedIn API surface found in the agent tree: {hits}"
+
+
+def test_the_probe_identifies_itself_so_the_edge_does_not_answer_403(monkeypatch):
+    """A probe with no User-Agent never sees its own article.
+
+    The site sits behind Cloudflare, and its bot management answers `403` to
+    urllib's default `Python-urllib/3.x`. That 403 is indistinguishable from
+    "not deployed yet" at the call site, so the handoff would be withheld for
+    ever and the run could never finish. This happened on the first real run.
+    """
+    seen: list[str | None] = []
+
+    def capture(request, timeout=None):
+        seen.append(request.get_header("User-agent"))
+        raise urlerror.HTTPError(request.full_url, 403, "Forbidden", {}, None)
+
+    monkeypatch.setattr(publish.urlrequest, "urlopen", capture)
+    monkeypatch.setattr(publish.time, "sleep", lambda _s: None)
+
+    publish.probe_deployed_url("some-slug")
+
+    assert seen, "the probe made no request"
+    assert all(ua for ua in seen), "the probe sent no User-Agent"
+    assert all("urllib" not in ua.lower() for ua in seen)
+    assert seen[0] == config.DEPLOY_PROBE_USER_AGENT
