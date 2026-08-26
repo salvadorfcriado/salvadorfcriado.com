@@ -98,6 +98,11 @@ ARTICLE_EXCERPT_MAX_CHARS = 160
 ARTICLE_MIN_TAGS = 1
 ARTICLE_MAX_TAGS = 3
 
+# The slug becomes the article's filename and its public URL. Renaming an
+# active one breaks the URL and needs a redirect rule on the zone, so the cap is
+# applied at a word boundary rather than mid-word.
+SLUG_MAX_CHARS = 70
+
 ARTICLE_REQUIRED_FRONTMATTER = ("title", "date", "tags", "excerpt", "readingTime")
 
 # `.strict()` on the content schema drops nothing in silence, so an unknown key

@@ -1,0 +1,49 @@
+{
+  "title": "The latency your users feel is not the one on your dashboard",
+  "angle": "Serving teams graph total request duration for a streaming endpoint, then tune against a number that mostly measures how long the answers happened to be. The split into three latencies is cheap, and it is what makes every other decision attributable.",
+  "thesis": "For a streaming LLM endpoint, total request duration is the wrong primary metric: it is dominated by output length, which is a property of the answer rather than of the service, and tuning against it hides the four serving failures that users actually report.",
+  "sections": [
+    {
+      "heading": "A streaming endpoint has three latencies",
+      "claim": "Time to first token, inter-token latency and total duration are three different measurements with three different causes, and only the first two are properties of the service.",
+      "evidence": "The decomposition, what each one is felt as by the user, and the rule that a duration percentile over mixed traffic measures the traffic mix."
+    },
+    {
+      "heading": "Five symptoms that arrive as one complaint",
+      "claim": "The single report 'it is slow' covers five distinct failures, each with a different check.",
+      "evidence": "Diagnostic table: user-visible symptom, likely cause, and the specific metric split that separates it from the others."
+    },
+    {
+      "heading": "Where the queue actually is",
+      "claim": "Continuous batching moved the admission limit from a batch-size constant to key-value cache memory, and the usual capacity signals did not follow.",
+      "evidence": "Why high GPU utilisation is not fullness, why reserving cache by requested maximum output length wastes the limiting resource, and why an aggregate percentile hides an interactive class sharing a node."
+    },
+    {
+      "heading": "The decision rule",
+      "claim": "Attributing time to first token into queue wait and prefill compute determines which fix applies.",
+      "evidence": "Four-branch rule with the fix for each branch, and a floor below which the search should stop."
+    },
+    {
+      "heading": "Order of operations",
+      "claim": "The order of the fixes matters more than the fixes, because the cheap reversible ones are also the ones that make the expensive ones measurable.",
+      "evidence": "Numbered sequence from splitting the metric to changing the model, with the reason each step precedes the next."
+    },
+    {
+      "heading": "The trap nobody checks",
+      "claim": "A load test whose output-length distribution does not match production invalidates every capacity conclusion drawn from it.",
+      "evidence": "The concrete check: output tokens per request, production against load test, on the same axes; plus the log-only version for teams with no harness."
+    },
+    {
+      "heading": "Where this stops applying",
+      "claim": "The advice is bounded by who owns the serving stack and by the model's own floor.",
+      "evidence": "Three named limits: hosted APIs, a model too slow for the interaction, and non-streaming clients for which only total duration matters."
+    }
+  ],
+  "gaps": [
+    "No first-token latency or inter-token latency figures from a deployment he has run. Every number in the piece is either arithmetic or a public property of the serving stack; if he wants a measured example, the 'five symptoms' section is where it would go.",
+    "No named serving stack version. The prefix-caching and preemption behaviour differs between servers and between releases, and the piece stays general because the specific one he ran is not recorded here.",
+    "No incident to open on. The opening is written as a composite; if he has a real ticket with the two contradictory numbers, it replaces the first paragraph and improves it."
+  ],
+  "tags": ["llm-serving", "evaluation", "llmops"],
+  "excerpt": "A streaming endpoint has three latencies and most dashboards graph the wrong one. Five symptoms, the check for each, and the order to fix them in."
+}
