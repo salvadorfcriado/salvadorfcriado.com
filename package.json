@@ -14,15 +14,15 @@
     "fonts": "node scripts/fonts.mjs"
   },
   "dependencies": {
-    "@astrojs/rss": "^4.0.12",
-    "@astrojs/sitemap": "^3.4.1",
-    "astro": "^5.13.2"
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.3",
+    "astro": "^7.2.7"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
     "@noble/hashes": "^2.3.0",
     "puppeteer": "^25.9.0",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   },
   "engines": {
     "node": ">=22.12.0"

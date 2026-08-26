@@ -50,6 +50,17 @@ export default defineConfig({
        light plate that put code at 1.24:1. Do not remove this. */
     shikiConfig: { theme: 'github-light' },
   },
+  /* Astro 7 minifies CSS with Lightning CSS, which with no target set emits
+     Media Queries Level 4 range syntax — `@media (width<=960px)`. Safari only
+     understands that from 16.4, and a media block it cannot parse is dropped
+     whole, so every responsive rule would silently vanish and those visitors
+     would get the desktop layout on a phone. The floor is Safari 15.4 because
+     the palette is already written in oklch(), which lands in that same version;
+     these targets keep the two agreeing instead of letting the CSS quietly
+     require a newer browser than the colours do. */
+  vite: {
+    build: { cssTarget: ['chrome111', 'edge111', 'firefox113', 'safari15.4', 'ios15.4'] },
+  },
   /* Page-scoped CSS is inlined on every page. Under 'auto' the landing page's
      6.4 KB block was the only one over the 4 KB threshold, so it alone paid a
      second render-blocking request. All page CSS together is ~3 KB gzipped. */
