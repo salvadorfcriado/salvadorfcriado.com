@@ -85,7 +85,7 @@ const jsonLd = [
   jsonLd={jsonLd}
 >
   <article class="post">
-    <header class="head">
+    <header class="post-head">
       <p class="meta">
         <time datetime={day}>{day}</time>{' · '}{d.readingTime} min read
       </p>
@@ -133,12 +133,17 @@ const jsonLd = [
 <style>
   .post { max-width: 720px; margin: 0 auto; padding: var(--space-gap-xl) var(--space-section-x) 64px; }
   .meta { font-family: var(--font-mono); font-size: var(--text-label); color: var(--text-muted); }
-  .head h1 {
+  .post-head h1 {
     font-size: var(--text-h1); font-weight: 700; line-height: 1.1;
     letter-spacing: var(--tracking-display); margin: 14px 0 16px;
   }
   .summary { font-size: var(--text-body-lg); line-height: 1.6; margin-bottom: 18px; }
-  .head { padding-bottom: 28px; border-bottom: 1px solid var(--border); }
+  /* Not `.head` — global.css gives that class `display: flex` for SectionHead's
+     one-line heading row, and the article header is four stacked blocks. Sharing
+     the name laid the date, the h1, the excerpt and the tag chips out side by
+     side on every post page above 560px; below that the global media query
+     stacks them again, which is why it never showed up on a phone. */
+  .post-head { padding-bottom: 28px; border-bottom: 1px solid var(--border); }
 
   .prose { font-size: var(--text-body-lg); line-height: 1.75; margin-top: var(--space-gap-lg); }
   .prose :global(h2) {
@@ -200,7 +205,7 @@ const jsonLd = [
   .author strong { color: var(--ink); }
   .open { display: block; margin-top: 6px; color: var(--accent); font-family: var(--font-mono); font-size: var(--text-meta); }
   @media (max-width: 620px) {
-    .head h1 { font-size: 30px; }
+    .post-head h1 { font-size: 30px; }
     .prose { font-size: 16px; }
     /* Half the line was off-screen at 375px. */
     .prose :global(pre) { font-size: 12px; padding: 14px; }
