@@ -36,6 +36,21 @@ jobs:
           path: ~/.cache/puppeteer
           key: puppeteer-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
+      # Chrome isolates its renderer with an unprivileged user namespace, and
+      # Ubuntu 24.04 refuses to hand one to an unprivileged process unless this
+      # AppArmor restriction is lifted. When ubuntu-latest moved to 24.04 the
+      # sandbox stopped being able to start at all — `Failed to launch the
+      # browser process`, signal 6, on every run — which took out `prebuild`
+      # and with it the whole build.
+      #
+      # Lifting the restriction here rather than passing `--no-sandbox` in
+      # scripts/og.mjs is deliberate: the flag would disable the sandbox
+      # everywhere, including on the machine where the cards are rendered
+      # before a real deploy. This is scoped to a throwaway runner and leaves
+      # Chrome's own isolation working.
+      - name: Allow Chrome's sandbox to open a user namespace
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
       - name: Install dependencies
         run: npm ci
 
