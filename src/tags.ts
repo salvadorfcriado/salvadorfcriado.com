@@ -14,7 +14,7 @@
 
      agents · voice-multimodal · embeddings · vector-databases · fine-tuning
      prompt-engineering · quantization · architecture · cloud-platform
-     kubernetes · distributed-systems · ai-coding · cost-performance
+     kubernetes · distributed-systems · cost-performance
 
    Renaming an ACTIVE slug breaks its archive URL. If it has to happen, it needs
    a redirect rule on the zone — see docs/infrastructure.md.
@@ -65,6 +65,12 @@ export const TAGS = [
     label: 'Data Engineering',
     blurb:
       'The data side of a GenAI system — ingestion, freshness, and the scheduled work nobody wrote down and nobody put on call.',
+  },
+  {
+    slug: 'ai-coding',
+    label: 'AI in the SDLC',
+    blurb:
+      'Building software with coding agents: spec-driven workflows, roles, review gates, and what a team has to measure once the writing stops being the expensive part.',
   },
   {
     slug: 'governance',
