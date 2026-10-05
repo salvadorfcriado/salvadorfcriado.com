@@ -40,7 +40,10 @@ const { index, title, action, display, id } = Astro.props;
 
 <style>
   .display {
-    font-size: var(--text-h2-lg); font-weight: 700;
+    font-size: var(--text-h1); font-weight: 700; line-height: 1.1;
     letter-spacing: var(--tracking-tight); margin-top: var(--space-gap-sm);
+  }
+  @media (max-width: 620px) {
+    .display { font-size: var(--text-h2-lg); }
   }
 </style>

@@ -1,0 +1,77 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import PostRow from '../components/PostRow.astro';
+import TagChips from '../components/TagChips.astro';
+import { SITE } from '../consts';
+import { sortByVocabulary } from '../tags';
+import { UI, getPosts, localePath, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = UI[lang].blog;
+const BLOG = t;
+const here = localePath(lang, '/blog/');
+const posts = await getPosts(lang);
+
+/* Chips come from the posts, not from the vocabulary — a tag nothing carries
+   gets no archive page, so nothing may link to one. */
+const tagsInUse = sortByVocabulary([...new Set(posts.flatMap((p) => p.data.tags))]);
+
+const jsonLd = [
+  {
+    '@type': 'Blog',
+    '@id': `${SITE.url}${here}#blog`,
+    name: BLOG.name,
+    description: BLOG.description,
+    url: `${SITE.url}${here}`,
+    author: { '@id': `${SITE.url}/#person` },
+    inLanguage: lang,
+  },
+  {
+    '@type': 'BreadcrumbList',
+    '@id': `${SITE.url}${here}#breadcrumb`,
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: t.home, item: `${SITE.url}${localePath(lang, '/')}` },
+      { '@type': 'ListItem', position: 2, name: BLOG.name },
+    ],
+  },
+];
+---
+<Base
+  title={BLOG.name}
+  ogTitle={BLOG.name}
+  description={BLOG.description}
+  path={here}
+  current="blog"
+  jsonLd={jsonLd}
+  lang={lang}
+>
+  <PageHero eyebrow={t.eyebrow} title={BLOG.name} lead={t.sub}>
+    <p class="rss"><a href={localePath(lang, '/rss.xml')}>{t.rss} →</a></p>
+    <nav class="filters" aria-label={t.filter}>
+      <TagChips tags={tagsInUse} lang={lang} />
+    </nav>
+  </PageHero>
+
+  <section class="section">
+    <div class="wrap">
+      <ul class="post-rows" role="list">
+        {posts.map((p) => <PostRow post={p} lang={lang} />)}
+      </ul>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .rss { margin-top: 18px; font-size: var(--fs-sm); }
+  .rss a { color: #c2b8ff; font-weight: 600; }
+  .rss a:hover, .rss a:focus-visible { color: #fff; }
+  .filters { margin-top: 28px; }
+  .post-rows { list-style: none; margin: 0; padding: 0; }
+  .post-rows :global(li) { border-top: 1px solid var(--border); }
+  .post-rows :global(li:first-child) { border-top: 0; }
+</style>

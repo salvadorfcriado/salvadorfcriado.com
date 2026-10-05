@@ -11,7 +11,8 @@
     "check": "astro check",
     "check:dist": "node scripts/check-dist.mjs",
     "og": "node scripts/og.mjs",
-    "fonts": "node scripts/fonts.mjs"
+    "fonts": "node scripts/fonts.mjs",
+    "dossier": "node scripts/dossier-pdf.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.19",

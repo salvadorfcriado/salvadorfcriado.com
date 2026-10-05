@@ -1,0 +1,118 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import PageHero from '../components/PageHero.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import ServiceVideo from '../components/ServiceVideo.astro';
+import ProcessSteps from '../components/ProcessSteps.astro';
+import CTABand from '../components/CTABand.astro';
+import Approach from '../components/Approach.astro';
+import Capabilities from '../components/Capabilities.astro';
+import { SITE } from '../consts';
+import { copy, SERVICE_ICON } from '../i18n/site';
+import { route, serviceRoute } from '../i18n/routes';
+import { UI, otherLang, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const c = copy(lang);
+const s = c.services;
+
+const jsonLd = [
+  {
+    '@type': 'ItemList',
+    '@id': `${SITE.url}${route(lang, 'services')}#services`,
+    itemListElement: s.items.map((it, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `${SITE.url}${serviceRoute(lang, it.id)}`,
+      name: it.name,
+    })),
+  },
+];
+---
+<Base
+  title={s.meta.title}
+  description={s.meta.description}
+  path={route(lang, 'services')}
+  altPath={route(otherLang(lang), 'services')}
+  lang={lang}
+  current="services"
+  jsonLd={jsonLd}
+>
+  <PageHero eyebrow={s.hero.eyebrow} title={s.hero.title} lead={s.hero.lead}>
+    <div class="cta">
+      <a class="btn btn-primary btn-lg" href={route(lang, 'contact')}>{c.common.contactCta}<Icon name="arrow" /></a>
+    </div>
+    <ul class="jump" role="list">
+      {s.items.map((it) => (
+        <li><a class="pill" href={`#${it.id}`}><Icon name={SERVICE_ICON[it.id]} size={16} />{it.name}</a></li>
+      ))}
+    </ul>
+  </PageHero>
+
+  <section class="section">
+    <div class="container">
+      <div class="rows">
+        {s.items.map((it, i) => (
+          <article class:list={['row', { flip: i % 2 === 1 }]} id={it.id}>
+            <div class="row-media reveal">
+              <ServiceVideo id={it.id} lang={lang} label={it.videoLabel} />
+            </div>
+            <div class="row-copy reveal" data-delay="1">
+              <p class="kicker"><span class="icon-tile"><Icon name={SERVICE_ICON[it.id]} /></span><span>0{i + 1} · {it.name}</span></p>
+              <h2 class="h2">{it.title}</h2>
+              <p class="lead">{it.lead}</p>
+              <ul class="checks" role="list">
+                {it.outcomes.map((o) => <li>{o}</li>)}
+              </ul>
+              <div class="row-cta">
+                <a class="btn btn-primary" href={serviceRoute(lang, it.id)}>{c.common.viewService}<Icon name="arrow" /></a>
+                {it.live && (
+                  <a class="link-arrow" href={it.live.href} rel="noopener" target="_blank">{it.live.label}<Icon name="arrowUpRight" /><span class="sr-only">{UI[lang].newTab}</span></a>
+                )}
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <Approach a={c.home.approach} spectrum={lang === 'es' ? ['Más rápido de lanzar', 'Más control'] : ['Faster to launch', 'More control']} />
+
+  <Capabilities c={c.capabilities} contactHref={route(lang, 'contact')} surface />
+
+  <section class="section section--dark glow" id="process">
+    <div class="container">
+      <SectionHeader eyebrow={c.home.process.eyebrow} title={c.home.process.title} lead={c.home.process.lead} />
+      <ProcessSteps steps={c.home.process.steps} dark />
+    </div>
+  </section>
+
+  <div class="spacer"></div>
+  <CTABand lang={lang} />
+</Base>
+
+<style>
+  .jump { list-style: none; display: flex; flex-wrap: wrap; gap: 10px; margin-top: 32px; }
+  .jump .pill:hover, .jump .pill:focus-visible { background: rgba(255, 255, 255, 0.12); }
+  .rows { display: flex; flex-direction: column; gap: clamp(72px, 9vw, 120px); }
+  .row { display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(32px, 5vw, 72px); align-items: center; scroll-margin-top: 100px; }
+  .row.flip .row-copy { order: -1; }
+  .kicker { display: flex; align-items: center; gap: 14px; font-size: var(--fs-label); font-weight: 600; letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--accent); }
+  .row-copy .h2 { margin-top: 20px; }
+  .row-copy .lead { margin-top: 16px; }
+  .row-copy .checks { margin-top: 24px; }
+  .row-cta { margin-top: 32px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; }
+  .spacer { height: clamp(48px, 6vw, 80px); }
+  @media (max-width: 960px) {
+    .row { grid-template-columns: 1fr; }
+    .row.flip .row-copy { order: 0; }
+  }
+  @media (max-width: 560px) {
+  }
+</style>

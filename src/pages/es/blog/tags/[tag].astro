@@ -1,0 +1,7 @@
+---
+import TagArchive from '../../../../views/TagArchive.astro';
+import { tagPaths } from '../../../../i18n/ui';
+
+export const getStaticPaths = () => tagPaths('es');
+---
+<TagArchive {...Astro.props} />

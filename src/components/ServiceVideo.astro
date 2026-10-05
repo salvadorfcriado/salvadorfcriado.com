@@ -1,0 +1,53 @@
+---
+/* One service animation, rendered by video/ (Remotion) into public/video/.
+   preload="none" + poster: nothing downloads until the clip scrolls into view,
+   and a reader with reduced motion only ever sees the poster. The observer in
+   Base.astro plays and pauses every video[data-autoplay]. `chrome` draws a
+   window bar above it, for the hero. */
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  id: string;
+  lang: Lang;
+  label: string;
+  chrome?: boolean;
+  eager?: boolean;
+  class?: string;
+}
+
+const { id, lang, label, chrome = false, eager = false, class: className } = Astro.props;
+const base = `/video/${id}-${lang}`;
+---
+<figure class:list={['frame', { chrome }, className]}>
+  {chrome && (
+    <div class="bar" aria-hidden="true"><span></span><span></span><span></span></div>
+  )}
+  <video
+    data-autoplay
+    muted
+    loop
+    playsinline
+    preload={eager ? 'auto' : 'none'}
+    width="1200"
+    height="800"
+    poster={`${base}.webp`}
+    aria-label={label}
+  >
+    <source src={`${base}.webm`} type="video/webm" />
+    <source src={`${base}.mp4`} type="video/mp4" />
+  </video>
+</figure>
+
+<style>
+  .frame {
+    margin: 0; overflow: hidden;
+    border-radius: var(--radius-card);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    box-shadow: var(--shadow-lg);
+  }
+  video { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; }
+  .chrome { border-radius: 18px; background: #fff; border-color: rgba(255, 255, 255, 0.14); box-shadow: 0 40px 100px -30px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.06); }
+  .bar { display: flex; gap: 7px; padding: 12px 14px; background: #f3f3f8; border-bottom: 1px solid var(--border); }
+  .bar span { width: 10px; height: 10px; border-radius: 50%; background: #d9d8e4; }
+</style>

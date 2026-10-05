@@ -1,263 +1,335 @@
 @import "./fonts.css";
 
 /* ── Fallback metrics ───────────────────────────────────────────────────────
-   Every measured layout shift on this site happened at the moment the webfonts
-   swapped in, and it was a REFLOW, not a metrics change: line-heights here are
-   unitless, so boxes are fixed, but Space Grotesk sets 8.3% wider than Arial,
-   so a heading that fits one line in the webfont wrapped to two in the fallback
-   and the whole page below it jumped. Scaling the fallback to the same width
-   makes the pre-swap and post-swap line breaks identical.
-
-   Ratios measured in-browser against these exact files, not taken from a table:
-   Space Grotesk / Arial = 108.3%, IBM Plex Sans / Arial = 100.8%, and
-   IBM Plex Mono needs no adjustment. Re-measure if a family is ever swapped. */
+   Scales the system fallback to the webfonts' width so the pre-swap and
+   post-swap line breaks match and the page does not jump when fonts arrive.
+   Inter / Arial ≈ 107%, Inter Tight / Arial ≈ 98%. Re-measure if a family is
+   ever swapped. */
 @font-face {
-  font-family: "Space Grotesk Fallback";
+  font-family: "Inter Tight Fallback";
   src: local("Arial"), local("Helvetica"), local("Liberation Sans"), local("Arimo");
-  size-adjust: 108.3%;
+  size-adjust: 98%;
   ascent-override: 98%;
-  descent-override: 27%;
+  descent-override: 24%;
   line-gap-override: 0%;
 }
 @font-face {
-  font-family: "IBM Plex Sans Fallback";
+  font-family: "Inter Fallback";
   src: local("Arial"), local("Helvetica"), local("Liberation Sans"), local("Arimo");
-  size-adjust: 100.8%;
-  ascent-override: 102.5%;
-  descent-override: 27.5%;
+  size-adjust: 107%;
+  ascent-override: 90%;
+  descent-override: 22%;
   line-gap-override: 0%;
 }
 
-/* ── Tokens — ported from design-system/tokens/ ─────────────────────────────
-   The type scale is closed: every size a page needs lives here. No two steps
-   sit within 1px of each other, which is what the 17/16.5/16 and 14/13.5
-   clusters used to do. If a page needs a size that is not here, add a rung. */
+/* ── Tokens ─────────────────────────────────────────────────────────────────
+   One brand accent (violet #6d5ae6, unchanged since the first site), a deep
+   violet-navy for dark sections, and a cool neutral ramp. --glow-* are for
+   gradients and light effects only — never for text or UI states. */
 :root {
   --bg: #ffffff;
-  --surface: oklch(0.975 0.004 280);
-  --ink: oklch(0.2 0.02 280);
-  --text-muted: oklch(0.46 0.02 280);
+  --surface: #f6f6fb;
+  --surface-2: #efeff7;
+  --ink: #0f0e1d;
+  --text: #45445a;
+  --text-muted: #6b6a80;
   --accent: #6d5ae6;
   --accent-strong: #5445b8;
   --accent-soft: rgba(109, 90, 230, 0.08);
+  --accent-line: rgba(109, 90, 230, 0.28);
   --on-accent: #ffffff;
+  --border: rgba(15, 14, 29, 0.08);
+  --border-strong: rgba(15, 14, 29, 0.14);
+
+  --dark: #0c0b19;
+  --dark-2: #15142b;
+  --on-dark: #ffffff;
+  --on-dark-muted: rgba(236, 234, 255, 0.7);
+  --dark-border: rgba(255, 255, 255, 0.1);
+  --glow-violet: #8b7bff;
+  --glow-cyan: #6fe3ff;
+
   --on-ink: #ffffff;
-  --border: oklch(0.2 0.02 280 / 0.1);
-  --border-strong: oklch(0.2 0.02 280 / 0.18);
-  --grid-line: oklch(0.2 0.02 280 / 0.045);
+  --grid-line: rgba(15, 14, 29, 0.05);
 
-  --font-display: "Space Grotesk", "Space Grotesk Fallback", system-ui, sans-serif;
-  --font-sans: "IBM Plex Sans", "IBM Plex Sans Fallback", system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --font-display: "Inter Tight", "Inter Tight Fallback", system-ui, sans-serif;
+  --font-sans: "Inter", "Inter Fallback", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
 
-  --text-masthead: 88px;
-  --text-h1-lg: 52px;
-  --text-h1: 40px;
-  --text-h2-lg: 28px;
-  --text-h2: 24px;
-  --text-h3: 20px;
-  --text-card-title: 17px;
-  --text-body-lg: 17px;
-  --text-body-md: 15px;
-  --text-body: 14px;
-  --text-code: 13px;
-  --text-label: 12px;
-  --text-meta: 11px;
+  /* Fluid type scale. */
+  --fs-display: clamp(2.6rem, 1.6rem + 4.2vw, 4.75rem);
+  --fs-h1: clamp(2.25rem, 1.6rem + 2.6vw, 3.5rem);
+  --fs-h2: clamp(1.9rem, 1.45rem + 1.9vw, 2.85rem);
+  --fs-h3: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+  --fs-h4: 1.125rem;
+  --fs-lg: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
+  --fs-body: 1rem;
+  --fs-sm: 0.9375rem;
+  --fs-xs: 0.8125rem;
+  --fs-label: 0.75rem;
 
-  --tracking-display: -0.045em;
+  /* Legacy names still read by the blog templates. */
+  --text-h1-lg: var(--fs-h1);
+  --text-h1: clamp(2rem, 1.5rem + 2vw, 2.75rem);
+  --text-h2-lg: 1.75rem;
+  --text-h2: 1.5rem;
+  --text-h3: 1.25rem;
+  --text-card-title: 1.0625rem;
+  --text-body-lg: 1.125rem;
+  --text-body-md: 1rem;
+  --text-body: 0.9375rem;
+  --text-code: 0.8125rem;
+  --text-label: 0.75rem;
+  --text-meta: 0.75rem;
+
+  --tracking-display: -0.035em;
   --tracking-tight: -0.02em;
-  --tracking-label: 0.06em;
+  --tracking-label: 0.08em;
   --tracking-wide: 0.04em;
 
-  --space-section-y: 52px;
-  --space-section-x: 48px;
+  --container: 1200px;
+  --gutter: clamp(20px, 4vw, 40px);
+  --section-y: clamp(72px, 9vw, 128px);
+  --space-section-x: var(--gutter);
+  --space-section-y: var(--section-y);
   --space-gap-xl: 56px;
   --space-gap-lg: 32px;
   --space-gap-md: 24px;
   --space-gap: 16px;
   --space-gap-sm: 8px;
 
-  --radius-btn: 6px;
-  --radius-card: 10px;
-  --radius-img: 12px;
-  --radius-chip: 5px;
+  --radius-sm: 8px;
+  --radius-btn: 12px;
+  --radius-card: 20px;
+  --radius-lg: 28px;
+  --radius-img: 20px;
+  --radius-chip: 999px;
 
-  --grid-cell: 28px;
-  --content-max: 1240px;
-  /* Measure. Body copy outside these caps ran 94–135 characters per line.
-     Expressed in em, not ch: `ch` is the advance of the "0" glyph, so a ch-based
-     max-width changes the moment the webfont swaps in and re-wraps the paragraph
-     — that reflow was the last remaining layout shift on /blog/. IBM Plex Sans
-     measures 1ch = 0.6em, so 68ch = 40.8em and 72ch = 43.2em. */
-  --measure: 40.8em;
-  --measure-wide: 43.2em;
+  --shadow-sm: 0 1px 2px rgba(15, 14, 29, 0.04), 0 1px 1px rgba(15, 14, 29, 0.03);
+  --shadow-md: 0 12px 32px -12px rgba(15, 14, 29, 0.14), 0 2px 6px rgba(15, 14, 29, 0.04);
+  --shadow-lg: 0 40px 80px -32px rgba(15, 14, 29, 0.32), 0 8px 24px -8px rgba(15, 14, 29, 0.12);
+  --shadow-glow: 0 10px 30px -8px rgba(109, 90, 230, 0.55);
+
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --measure: 40em;
+  --measure-wide: 46em;
 }
 
 /* ── Reset ──────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 body {
   margin: 0;
   background: var(--bg);
-  color: var(--text-muted);
+  color: var(--text);
   font-family: var(--font-sans);
-  font-size: var(--text-body);
-  line-height: 1.6;
+  font-size: var(--fs-body);
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
-img { max-width: 100%; display: block; }
+img, video, svg { max-width: 100%; display: block; }
+/* Keep the intrinsic ratio when CSS narrows an image that carries width/height attributes. */
+img, video { height: auto; }
 a { color: inherit; text-decoration: none; transition: color 150ms; }
-h1, h2, h3 { font-family: var(--font-display); color: var(--ink); margin: 0; }
-p { margin: 0; }
+h1, h2, h3, h4 {
+  font-family: var(--font-display); color: var(--ink); margin: 0;
+  letter-spacing: var(--tracking-tight); line-height: 1.12; text-wrap: balance;
+}
+p { margin: 0; text-wrap: pretty; }
+ul, ol { margin: 0; padding: 0; }
+::selection { background: rgba(109, 90, 230, 0.2); }
 
 /* ── Focus ──────────────────────────────────────────────────────────────────
-   The site defined none of these. The UA default ring measures 2.49:1 against
-   white, below the 3:1 minimum for a non-text indicator, and every affordance
-   on the site was hover-only — a keyboard user got no feedback a mouse user got.
-   Every :hover rule in this codebase has a :focus-visible twin. Keep it that way. */
-:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: 2px;
-}
+   Every :hover rule in this codebase has a :focus-visible twin. Keep it so. */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
 
 /* ── Utilities ──────────────────────────────────────────────────────────── */
 .sr-only {
-  position: absolute;
-  width: 1px; height: 1px;
-  padding: 0; margin: -1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-  border: 0;
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
 }
 .skip {
-  position: absolute;
-  left: var(--space-gap-sm);
-  top: -100px;
-  z-index: 10;
-  background: var(--ink);
-  color: var(--on-ink);
-  font-family: var(--font-mono);
-  font-size: var(--text-label);
-  letter-spacing: var(--tracking-wide);
-  padding: 14px 18px;
-  border-radius: var(--radius-btn);
-  transition: top 120ms;
+  position: absolute; left: 8px; top: -100px; z-index: 100;
+  background: var(--ink); color: var(--on-ink);
+  font-size: var(--fs-sm); font-weight: 600;
+  padding: 12px 18px; border-radius: var(--radius-btn); transition: top 120ms;
 }
-.skip:focus { top: var(--space-gap-sm); }
+.skip:focus { top: 8px; }
 
-/* The graph-paper plate. Was copy-pasted into four page styles, Cover.astro
-   and the OG card generator. */
-.graph-paper {
-  background-color: var(--bg);
+/* ── Layout ─────────────────────────────────────────────────────────────── */
+.container, .wrap { width: 100%; max-width: var(--container); margin-inline: auto; }
+.container { padding-inline: var(--gutter); }
+.section { padding: var(--section-y) var(--gutter); }
+.section > .container { padding-inline: 0; }
+.section--tight { padding-block: clamp(56px, 7vw, 88px); }
+.section--surface, .alt { background: var(--surface); }
+.section--dark {
+  position: relative; isolation: isolate; overflow: hidden;
+  background: var(--dark); color: var(--on-dark-muted);
+}
+.section--dark h1, .section--dark h2, .section--dark h3, .section--dark h4 { color: var(--on-dark); }
+/* Ambient light for dark sections. */
+.glow::before {
+  content: ''; position: absolute; top: -25%; right: -10%; z-index: -1;
+  width: 70vw; height: 70vw; max-width: 900px; max-height: 900px;
+  background: radial-gradient(closest-side, rgba(109, 90, 230, 0.45), transparent 70%);
+  filter: blur(20px); pointer-events: none;
+}
+.glow::after {
+  content: ''; position: absolute; bottom: -35%; left: -15%; z-index: -1;
+  width: 60vw; height: 60vw; max-width: 760px; max-height: 760px;
+  background: radial-gradient(closest-side, rgba(111, 227, 255, 0.14), transparent 70%);
+  filter: blur(20px); pointer-events: none;
+}
+.grid-lines {
+  position: absolute; inset: 0; z-index: -1; pointer-events: none;
   background-image:
-    repeating-linear-gradient(to right, var(--grid-line) 0 1px, transparent 1px var(--grid-cell)),
-    repeating-linear-gradient(to bottom, var(--grid-line) 0 1px, transparent 1px var(--grid-cell));
+    linear-gradient(to right, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 20%, #000 30%, transparent 100%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 20%, #000 30%, transparent 100%);
 }
+.grid-lines--light {
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+}
+/* Legacy name — the blog mastheads still use it. */
+.graph-paper { background-color: var(--surface); }
 
-/* ── Layout primitives ──────────────────────────────────────────────────── */
-.wrap { max-width: var(--content-max); margin: 0 auto; }
-.section {
-  padding: var(--space-section-y) var(--space-section-x);
-  border-bottom: 1px solid var(--border);
+/* ── Type helpers ───────────────────────────────────────────────────────── */
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--font-sans); font-size: var(--fs-label); font-weight: 600;
+  letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--accent);
 }
-/* The footer draws its own top border; without this the two stack into a 2px rule. */
-main > .section:last-child { border-bottom: 0; }
-.alt { background: var(--surface); }
-.head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-gap-lg); }
+.eyebrow::before { content: ''; width: 18px; height: 2px; border-radius: 2px; background: currentColor; }
+.section--dark .eyebrow { color: #a99cff; }
+.display { font-size: var(--fs-display); font-weight: 700; letter-spacing: var(--tracking-display); line-height: 1.02; }
+.h1 { font-size: var(--fs-h1); font-weight: 700; letter-spacing: var(--tracking-display); line-height: 1.06; }
+.h2 { font-size: var(--fs-h2); font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; }
+.h3 { font-size: var(--fs-h3); font-weight: 650; }
+.lead { font-size: var(--fs-lg); line-height: 1.65; max-width: var(--measure); }
+.section--dark .lead { color: var(--on-dark-muted); }
+.gradient-text {
+  background: linear-gradient(100deg, var(--accent) 0%, #8f6dff 45%, #3aa7f0 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.section--dark .gradient-text {
+  background: linear-gradient(100deg, #c2b8ff 0%, #8b7bff 45%, var(--glow-cyan) 100%);
+  -webkit-background-clip: text; background-clip: text;
+}
+.mono { font-family: var(--font-mono); font-size: var(--fs-xs); letter-spacing: 0.02em; }
+
+/* Legacy label used by the blog and SectionHead. */
 .label {
-  font-family: var(--font-mono);
-  font-size: var(--text-label);
-  letter-spacing: var(--tracking-label);
-  color: var(--accent);
-  text-transform: uppercase;
+  font-family: var(--font-sans); font-size: var(--fs-label); font-weight: 600;
+  letter-spacing: var(--tracking-label); color: var(--accent); text-transform: uppercase;
 }
-/* The ordinal is decoration; it used to be read aloud as "zero one slash". */
 .label .ord { user-select: none; }
-.mono-link {
-  font-family: var(--font-mono);
-  font-size: var(--text-label);
-  letter-spacing: var(--tracking-wide);
-  color: var(--text-muted);
-}
+.head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-gap-lg); }
+.mono-link { font-size: var(--fs-sm); font-weight: 600; color: var(--text-muted); }
 .mono-link:hover, .mono-link:focus-visible { color: var(--accent); }
 .accent-link { color: var(--accent); }
 
-/* ── Chips ──────────────────────────────────────────────────────────────── */
-.chip {
-  display: inline-flex;
-  align-items: center;
-  font-family: var(--font-mono);
-  font-size: var(--text-label);
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
-  color: var(--text-muted);
-  background: var(--bg);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-chip);
-  padding: 5px 10px;
+/* ── Buttons ────────────────────────────────────────────────────────────── */
+.cta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 32px; }
+.cta-note { font-size: var(--fs-xs); color: var(--text-muted); }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 48px; padding: 0 22px;
+  font-family: var(--font-sans); font-weight: 600; font-size: var(--fs-sm); line-height: 1;
+  border-radius: var(--radius-btn); border: 1px solid transparent;
+  transition: background-color 180ms var(--ease), color 180ms, border-color 180ms, transform 180ms var(--ease), box-shadow 180ms;
   white-space: nowrap;
 }
+.btn svg { width: 16px; height: 16px; transition: transform 180ms var(--ease); }
+.btn:hover svg, .btn:focus-visible svg { transform: translateX(3px); }
+.btn-lg { min-height: 56px; padding: 0 28px; font-size: var(--fs-body); }
+.btn-primary { background: var(--accent); color: var(--on-accent); box-shadow: var(--shadow-glow); }
+.btn-primary:hover, .btn-primary:focus-visible { background: var(--accent-strong); transform: translateY(-1px); }
+.btn-secondary, .btn-outline { background: var(--bg); color: var(--ink); border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+.btn-secondary:hover, .btn-secondary:focus-visible,
+.btn-outline:hover, .btn-outline:focus-visible { border-color: var(--accent); color: var(--accent-strong); }
+.btn-glass { background: rgba(255, 255, 255, 0.06); color: var(--on-dark); border-color: var(--dark-border); backdrop-filter: blur(8px); }
+.btn-glass:hover, .btn-glass:focus-visible { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.24); }
+.btn-white { background: #fff; color: var(--ink); }
+.btn-white:hover, .btn-white:focus-visible { background: #efedff; transform: translateY(-1px); }
+.link-arrow { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: var(--fs-sm); color: var(--accent); }
+.link-arrow svg { width: 15px; height: 15px; transition: transform 180ms var(--ease); }
+.link-arrow:hover svg, .link-arrow:focus-visible svg { transform: translateX(3px); }
+.link-arrow:hover, .link-arrow:focus-visible { color: var(--accent-strong); }
+.section--dark .link-arrow { color: #b4a8ff; }
+.section--dark .link-arrow:hover, .section--dark .link-arrow:focus-visible { color: #fff; }
 
-/* ── Work rows ──────────────────────────────────────────────────────────── */
-.rows { list-style: none; margin: var(--space-gap-md) 0 0; padding: 0; }
-.work-row {
-  display: grid; grid-template-columns: 1fr 1.5fr 120px; gap: var(--space-gap-lg);
-  padding: 20px 0; border-top: 1px solid var(--border); align-items: baseline;
+/* ── Cards & chips ──────────────────────────────────────────────────────── */
+.card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow-sm); }
+.card--hover { transition: transform 260ms var(--ease), box-shadow 260ms var(--ease), border-color 260ms; }
+.card--hover:hover, .card--hover:focus-within { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--accent-line); }
+.pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: var(--fs-xs); font-weight: 500; color: var(--ink);
+  padding: 6px 12px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border);
+  white-space: nowrap;
 }
-.work-row h3 { font-size: var(--text-card-title); font-weight: 600; }
-.work-row p { font-size: var(--text-body); max-width: var(--measure-wide); }
-.year { font-family: var(--font-mono); font-size: var(--text-label); text-align: right; color: var(--text-muted); }
+.section--dark .pill { background: rgba(255, 255, 255, 0.06); color: var(--on-dark); border-color: var(--dark-border); }
+.pill-dot { width: 7px; height: 7px; border-radius: 50%; background: #34d399; box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.2); }
+.chip {
+  display: inline-flex; align-items: center;
+  font-size: var(--fs-xs); font-weight: 500; color: var(--text);
+  background: var(--bg); border: 1px solid var(--border-strong); border-radius: 999px;
+  padding: 6px 12px; white-space: nowrap;
+}
+.icon-tile {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 48px; height: 48px; border-radius: 14px;
+  background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-line);
+}
+.icon-tile svg { width: 24px; height: 24px; }
+.section--dark .icon-tile { background: rgba(139, 123, 255, 0.12); color: #b4a8ff; border-color: rgba(139, 123, 255, 0.28); }
 
-/* ── Buttons ────────────────────────────────────────────────────────────── */
-.cta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-gap); margin-top: 28px; }
-.cta-note { font-family: var(--font-mono); font-size: var(--text-label); color: var(--text-muted); }
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: var(--text-body);
-  padding: 12px 22px;
-  border-radius: var(--radius-btn);
-  transition: background-color 150ms, color 150ms;
+/* Check list */
+.checks { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.checks li { display: flex; gap: 12px; align-items: flex-start; color: var(--ink); line-height: 1.5; }
+.checks li::before {
+  content: ''; flex: none; width: 20px; height: 20px; margin-top: 2px; border-radius: 50%;
+  background: var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 12.5l3.2 3.2L17 9' stroke='white' stroke-width='2.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 16px no-repeat;
 }
-.btn-primary { background: var(--accent); color: var(--on-accent); }
-.btn-primary:hover, .btn-primary:focus-visible { background: var(--accent-strong); }
-.btn-outline { background: var(--bg); color: var(--ink); border: 1px solid var(--border-strong); }
-.btn-outline:hover, .btn-outline:focus-visible { background: var(--accent-soft); color: var(--accent-strong); }
+.section--dark .checks li { color: var(--on-dark); }
+
+/* ── Reveal on scroll ───────────────────────────────────────────────────────
+   Only armed once the script in Base.astro has run (html.js), so content is
+   never hidden for a reader without JavaScript or with reduced motion. */
+html.js .reveal { opacity: 0; transform: translateY(18px); transition: opacity 700ms var(--ease), transform 700ms var(--ease); }
+html.js .reveal.is-visible { opacity: 1; transform: none; }
+html.js .reveal[data-delay="1"] { transition-delay: 80ms; }
+html.js .reveal[data-delay="2"] { transition-delay: 160ms; }
+html.js .reveal[data-delay="3"] { transition-delay: 240ms; }
+html.js .reveal[data-delay="4"] { transition-delay: 320ms; }
+@media (prefers-reduced-motion: reduce) {
+  html.js .reveal { opacity: 1; transform: none; transition: none; }
+}
 
 /* ── Responsive ─────────────────────────────────────────────────────────── */
-@media (max-width: 960px) {
-  :root { --space-section-x: 24px; --text-masthead: 56px; }
-  .btn { min-height: 44px; }
-  .work-row { grid-template-columns: 1fr; gap: 6px; }
-  .year { text-align: left; }
-}
-@media (max-width: 760px) {
-  /* Nothing on any page reached 44px except .btn — nav links were 18px tall.
-     Inline links inside a paragraph are exempt (WCAG 2.5.8 inline exception);
-     these are all standalone controls. */
-  .chip, .mono-link { min-height: 44px; display: inline-flex; align-items: center; }
-}
-@media (max-width: 620px) {
-  :root { --space-section-y: 36px; }
-}
 @media (max-width: 560px) {
-  :root { --text-masthead: 44px; }
   .head { flex-direction: column; align-items: flex-start; gap: var(--space-gap-sm); }
+  .cta .btn { flex: 1 1 100%; }
 }
 
 /* ── Print ──────────────────────────────────────────────────────────────── */
 @media print {
-  :root { --space-section-y: 18px; --space-section-x: 0px; }
   body { color: #000; font-size: 11pt; }
-  .topbar, .foot .elsewhere, .cta, .skip, .filters, .end .cta, .ambient { display: none !important; }
-  .graph-paper, .cover, .section.alt { background-image: none !important; background-color: transparent !important; }
-  .section, .work-row { border-color: #ccc; }
-  a { color: #000; text-decoration: underline; }
+  .site-header, .site-footer, .skip, .filters, .no-print { display: none !important; }
+  html.js .reveal { opacity: 1 !important; transform: none !important; }
   .prose a[href^="http"]::after { content: " (" attr(href) ")"; font-size: 9pt; word-break: break-all; }
   .prose pre, .prose table { break-inside: avoid; }
 }
+
+/* Chips on dark heroes (blog index and topic archives). */
+.section--dark .chip { background: rgba(255, 255, 255, 0.06); color: #fff; border-color: var(--dark-border); }
+.section--dark .chip:hover, .section--dark .chip:focus-visible { background: rgba(255, 255, 255, 0.14); color: #fff; border-color: rgba(255, 255, 255, 0.3); }
+.section--dark .chip.active { background: var(--accent); border-color: var(--accent); }

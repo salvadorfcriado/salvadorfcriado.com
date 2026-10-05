@@ -1,0 +1,42 @@
+---
+import Icon from './Icon.astro';
+import type { Case } from '../i18n/site';
+
+interface Props {
+  k: Case;
+  href: string;
+  cta: string;
+  index?: number;
+}
+
+const { k, href, cta, index = 0 } = Astro.props;
+---
+<article class="case card card--hover reveal" data-delay={String(index % 4)}>
+  <p class="sector">{k.sector}</p>
+  <p class="metric">{k.metric}</p>
+  <p class="metric-label">{k.metricLabel}</p>
+  <h3><a href={href}>{k.title}</a></h3>
+  <p class="summary">{k.summary}</p>
+  <span class="link-arrow" aria-hidden="true">{cta}<Icon name="arrow" /></span>
+</article>
+
+<style>
+  /* Explicit colours: the card also sits inside dark sections, whose h3/link rules would bleed in. */
+  .case { position: relative; display: flex; flex-direction: column; padding: 28px; height: 100%; color: var(--text); }
+  .case h3 { color: var(--ink); }
+  .case .link-arrow { color: var(--accent); }
+  .sector { font-size: var(--fs-label); font-weight: 600; letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--text-muted); }
+  .metric {
+    margin-top: 22px; font-family: var(--font-display); font-weight: 700;
+    font-size: clamp(2.4rem, 2rem + 1.5vw, 3.1rem); letter-spacing: -0.04em; line-height: 1;
+    background: linear-gradient(100deg, var(--accent), #8f6dff 50%, #3aa7f0);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .metric-label { margin-top: 8px; font-size: var(--fs-xs); color: var(--text-muted); }
+  h3 { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); font-size: var(--fs-h4); font-weight: 650; line-height: 1.3; }
+  h3 a::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
+  h3 a:focus-visible { outline: none; }
+  .case:focus-within { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .summary { margin-top: 10px; font-size: var(--fs-sm); flex: 1; }
+  .link-arrow { margin-top: 18px; }
+</style>

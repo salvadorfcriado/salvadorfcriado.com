@@ -1,0 +1,77 @@
+---
+/* What "deep development" of a voice agent means: the six stages of the real-
+   time loop, the latency budget they share, and a link to the service. */
+import Icon from './Icon.astro';
+import SectionHeader from './SectionHeader.astro';
+import type { SiteCopy } from '../i18n/site';
+
+interface Props {
+  v: SiteCopy['home']['voice'];
+  href?: string;
+}
+
+const { v, href } = Astro.props;
+---
+<section class="section section--dark glow anatomy" id="voice">
+  <div class="grid-lines" aria-hidden="true"></div>
+  <div class="container">
+    <SectionHeader eyebrow={v.eyebrow} title={v.title} lead={v.lead} />
+    <ol class="pipe" role="list">
+      {v.stages.map((s, i) => (
+        <li class="stage reveal" data-delay={String(Math.min(i, 4))}>
+          <span class="n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+          <h3>{s.t}</h3>
+          <p>{s.d}</p>
+          <span class="tech">{s.tech}</span>
+        </li>
+      ))}
+    </ol>
+    <div class="budget reveal">
+      <div class="total">
+        <span class="total-n gradient-text">{v.total}</span>
+        <span class="total-l">{v.totalLabel}</span>
+      </div>
+      <ul class="checks" role="list">{v.points.map((p) => <li>{p}</li>)}</ul>
+      {href && <a class="btn btn-white" href={href}>{v.cta}<Icon name="arrow" /></a>}
+    </div>
+  </div>
+</section>
+
+<style>
+  .pipe { list-style: none; display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; position: relative; }
+  /* The signal running through the loop. */
+  .pipe::before {
+    content: ''; position: absolute; left: 0; right: 0; top: 32px; height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(139, 123, 255, 0.6), rgba(111, 227, 255, 0.6), transparent);
+    background-size: 200% 100%; animation: flow 4s linear infinite;
+  }
+  @keyframes flow { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+  @media (prefers-reduced-motion: reduce) { .pipe::before { animation: none; } }
+  .stage {
+    position: relative; display: flex; flex-direction: column; gap: 8px;
+    padding: 20px 18px 18px; border-radius: 18px;
+    background: rgba(255, 255, 255, 0.04); border: 1px solid var(--dark-border);
+    backdrop-filter: blur(6px);
+  }
+  .n {
+    display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px;
+    background: rgba(139, 123, 255, 0.2); color: #d4ccff; font-family: var(--font-mono); font-size: 0.75rem;
+  }
+  h3 { margin-top: 6px; font-size: 1.0625rem; font-weight: 650; }
+  .stage p { font-size: var(--fs-xs); line-height: 1.5; flex: 1; }
+  .tech { font-family: var(--font-mono); font-size: 0.6875rem; color: #a99cff; padding-top: 10px; border-top: 1px solid var(--dark-border); }
+  .budget {
+    display: grid; grid-template-columns: auto 1fr auto; gap: 40px; align-items: center;
+    margin-top: 28px; padding: 28px 32px; border-radius: var(--radius-card);
+    background: rgba(255, 255, 255, 0.05); border: 1px solid var(--dark-border);
+  }
+  .total { display: flex; flex-direction: column; gap: 6px; max-width: 16em; }
+  .total-n { font-family: var(--font-display); font-weight: 700; font-size: clamp(2.8rem, 2rem + 3vw, 4.25rem); letter-spacing: -0.05em; line-height: 1; }
+  .total-l { font-size: var(--fs-xs); }
+  @media (max-width: 1100px) {
+    .pipe { grid-template-columns: repeat(3, 1fr); }
+    .pipe::before { display: none; }
+    .budget { grid-template-columns: 1fr; gap: 24px; }
+  }
+  @media (max-width: 600px) { .pipe { grid-template-columns: 1fr 1fr; } }
+</style>

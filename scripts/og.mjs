@@ -198,16 +198,16 @@ body{width:${CANVAS.width}px;height:${CANVAS.height}px;display:flex;flex-directi
   background-image:repeating-linear-gradient(to right,${CARD.gridLine} 0 1px,transparent 1px ${CARD.gridCell}),
                    repeating-linear-gradient(to bottom,${CARD.gridLine} 0 1px,transparent 1px ${CARD.gridCell});
   border-bottom:${CARD.rule} solid ${CARD.accent}}
-.eyebrow{font-family:"IBM Plex Mono";font-weight:500;font-size:19px;letter-spacing:${CARD.trackingLabel};color:${CARD.accent};
+.eyebrow{font-family:"JetBrains Mono";font-weight:500;font-size:19px;letter-spacing:${CARD.trackingLabel};color:${CARD.accent};
   text-transform:uppercase}
 /* The line clamp is a backstop, not the layout: titles are validated against
    TITLE_MAX so this should never actually engage. If it does, a clipped card is
    still better than one with its footer pushed off the canvas. */
-h1{font-family:"Space Grotesk";font-weight:700;line-height:1.04;letter-spacing:${CARD.trackingTitle};color:${CARD.ink};
+h1{font-family:"Inter Tight";font-weight:700;line-height:1.04;letter-spacing:${CARD.trackingTitle};color:${CARD.ink};
   overflow:hidden;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical}
 h1 span{color:${CARD.accent}}
-p{font-family:"IBM Plex Sans";font-size:24px;line-height:1.5;color:${CARD.muted};max-width:820px}
-.foot{font-family:"IBM Plex Mono";font-size:19px;letter-spacing:${CARD.trackingMeta};color:${CARD.muted};
+p{font-family:"Inter";font-size:24px;line-height:1.5;color:${CARD.muted};max-width:820px}
+.foot{font-family:"JetBrains Mono";font-size:19px;letter-spacing:${CARD.trackingMeta};color:${CARD.muted};
   display:flex;justify-content:space-between;align-items:baseline;gap:24px}
 .foot .right{text-align:right;white-space:nowrap}
 ${extra}

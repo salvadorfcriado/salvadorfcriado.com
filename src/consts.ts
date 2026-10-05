@@ -2,16 +2,15 @@ export const SITE = {
   domain: 'salvadorfcriado.com',
   url: 'https://salvadorfcriado.com',
   name: 'Salvador F. Criado',
-  jobTitle: 'AI & Platform Engineer',
+  jobTitle: 'applied AI specialist and software engineer',
   email: 'mail@salvadorfcriado.com',
   linkedin: 'https://linkedin.com/in/salvadorfcriado',
   github: 'https://github.com/salvadorfcriado',
   locality: 'Granada',
   region: 'Andalusia',
   country: 'ES',
-  /* Rendered in the footer of every page and in the hero note. The site's only
-     job is to get a hiring conversation started; say so where it is always visible. */
-  status: 'Open to permanent, fully remote senior / staff roles.',
+  /* llms.txt only; the footer's line is per language, in src/i18n/ui.ts. */
+  status: 'Available for new projects — voice agents, document automation, applied AI and cloud infrastructure.',
 } as const;
 
 /* Required verbatim on every page — GEO entity paragraph (handoff §8).

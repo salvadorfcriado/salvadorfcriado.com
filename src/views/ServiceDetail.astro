@@ -1,0 +1,272 @@
+---
+/* One service in depth: problem → how it works → what's included → outcomes →
+   where it fits → a real project → FAQ → the other services. */
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import PageHero from '../components/PageHero.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import ServiceVideo from '../components/ServiceVideo.astro';
+import FAQ from '../components/FAQ.astro';
+import CTABand from '../components/CTABand.astro';
+import Approach from '../components/Approach.astro';
+import VoiceAnatomy from '../components/VoiceAnatomy.astro';
+import { SITE } from '../consts';
+import { copy, caseById, SERVICE_ICON } from '../i18n/site';
+import { route, serviceRoute, SERVICE_IDS, type ServiceId } from '../i18n/routes';
+import { UI, otherLang, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  id: ServiceId;
+}
+
+const { lang, id } = Astro.props;
+const c = copy(lang);
+const sec = c.services.sections;
+const s = c.services.items.find((x) => x.id === id)!;
+const k = caseById(lang, s.caseId);
+const others = SERVICE_IDS.filter((x) => x !== id).map((x) => c.services.items.find((y) => y.id === x)!);
+const here = serviceRoute(lang, id);
+
+const jsonLd = [
+  {
+    '@type': 'Service',
+    '@id': `${SITE.url}${here}#service`,
+    name: s.name,
+    description: s.meta.description,
+    provider: { '@id': `${SITE.url}/#person` },
+    areaServed: 'Worldwide',
+    availableLanguage: ['es', 'en'],
+    url: `${SITE.url}${here}`,
+  },
+  {
+    '@type': 'FAQPage',
+    '@id': `${SITE.url}${here}#faq`,
+    mainEntity: s.faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  },
+  {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: c.nav.services, item: `${SITE.url}${route(lang, 'services')}` },
+      { '@type': 'ListItem', position: 2, name: s.name },
+    ],
+  },
+];
+---
+<Base
+  title={s.meta.title}
+  description={s.meta.description}
+  path={here}
+  altPath={serviceRoute(otherLang(lang), id)}
+  lang={lang}
+  current="services"
+  jsonLd={jsonLd}
+>
+  <PageHero eyebrow={s.name} title={s.title} lead={s.lead} crumbs={[{ href: route(lang, 'services'), label: c.nav.services }]}>
+    <div class="cta">
+      <a class="btn btn-primary btn-lg" href={route(lang, 'contact')}>{c.common.contactCta}<Icon name="arrow" /></a>
+      {s.live ? (
+        <a class="btn btn-glass btn-lg" href={s.live.href} rel="noopener" target="_blank">{s.live.label}<Icon name="arrowUpRight" /><span class="sr-only">{UI[lang].newTab}</span></a>
+      ) : (
+        <a class="btn btn-glass btn-lg" href="#how">{sec.how}</a>
+      )}
+    </div>
+    <ServiceVideo slot="visual" id={id} lang={lang} label={s.videoLabel} chrome eager />
+  </PageHero>
+
+  <!-- Problem -->
+  <section class="section section--tight">
+    <div class="container problem">
+      <div>
+        <p class="eyebrow">{sec.problem}</p>
+      </div>
+      <ul class="pain" role="list">
+        {s.problem.map((p, i) => (
+          <li class="reveal" data-delay={String(i)}>
+            <span class="pain-n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+            <p>{p}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  {id === 'voice' && <VoiceAnatomy v={c.home.voice} />}
+  {(id === 'voice' || id === 'assistant') && <Approach a={c.home.approach} spectrum={lang === 'es' ? ['Más rápido de lanzar', 'Más control'] : ['Faster to launch', 'More control']} />}
+
+  <!-- How it works -->
+  <section class="section section--surface" id="how">
+    <div class="container">
+      <SectionHeader eyebrow={sec.how} title={s.tagline} />
+      <ol class="flow" role="list">
+        {s.how.map((h, i) => (
+          <li class="flow-step card reveal" data-delay={String(i)}>
+            <span class="flow-n" aria-hidden="true">{i + 1}</span>
+            <h3>{h.t}</h3>
+            <p>{h.d}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <!-- Includes + outcomes -->
+  <section class="section">
+    <div class="container split">
+      <div class="reveal">
+        <p class="eyebrow">{sec.includes}</p>
+        <ul class="includes" role="list">
+          {s.includes.map((x) => <li><Icon name="check" size={18} /><span>{x}</span></li>)}
+        </ul>
+      </div>
+      <div class="outcomes reveal" data-delay="1">
+        <p class="eyebrow">{sec.outcomes}</p>
+        <ul class="checks" role="list">
+          {s.outcomes.map((o) => <li>{o}</li>)}
+        </ul>
+        <div class="stack">
+          <p class="stack-label">{c.common.stack}</p>
+          <ul role="list">{s.stack.map((t) => <li class="pill">{t}</li>)}</ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Fit -->
+  <section class="section section--surface">
+    <div class="container">
+      <SectionHeader eyebrow={sec.fit} title={c.home.sectors.title} />
+      <ul class="fit" role="list">
+        {s.fit.map((f, i) => (
+          <li class="card reveal" data-delay={String(i)}>
+            <p class="fit-k">{c.common.example}</p>
+            <h3>{f.t}</h3>
+            <p>{f.d}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <!-- Related case -->
+  {k && (
+    <section class="section">
+      <div class="container">
+        <article class="case-feature reveal">
+          <div class="cf-metric">
+            <p class="eyebrow">{c.common.relatedCase}</p>
+            <p class="cf-n">{k.metric}</p>
+            <p class="cf-l">{k.metricLabel}</p>
+          </div>
+          <div class="cf-body">
+            <p class="cf-sector">{k.sector}</p>
+            <h2 class="h3">{k.title}</h2>
+            <p>{k.summary}</p>
+            <a class="link-arrow" href={`${route(lang, 'work')}#${k.id}`}>{c.common.learnMore}<Icon name="arrow" /></a>
+          </div>
+        </article>
+      </div>
+    </section>
+  )}
+
+  <!-- FAQ -->
+  <section class="section section--surface">
+    <div class="container faq-grid">
+      <SectionHeader eyebrow={c.common.faqTitle} title={s.name} />
+      <FAQ items={s.faq} />
+    </div>
+  </section>
+
+  <!-- Other services -->
+  <section class="section section--tight">
+    <div class="container">
+      <SectionHeader title={c.common.otherServices}>
+        <a class="link-arrow" href={route(lang, 'services')}>{c.common.backToServices}<Icon name="arrow" /></a>
+      </SectionHeader>
+      <ul class="others" role="list">
+        {others.map((o) => (
+          <li>
+            <a class="other card card--hover" href={serviceRoute(lang, o.id)}>
+              <span class="icon-tile"><Icon name={SERVICE_ICON[o.id]} /></span>
+              <span class="other-name">{o.name}</span>
+              <Icon name="arrowUpRight" size={18} class="other-arrow" />
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <CTABand lang={lang} />
+</Base>
+
+<style>
+  .problem { display: grid; grid-template-columns: 0.6fr 1.4fr; gap: 40px; align-items: start; }
+  .pain { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .pain li { padding-top: 18px; border-top: 2px solid var(--ink); }
+  .pain-n { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--accent); }
+  .pain p { margin-top: 10px; font-family: var(--font-display); font-size: var(--fs-h4); font-weight: 600; color: var(--ink); line-height: 1.35; letter-spacing: -0.01em; }
+
+  .flow { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; position: relative; }
+  .flow-step { position: relative; padding: 28px 24px; }
+  .flow-step:not(:last-child)::after {
+    content: ''; position: absolute; top: 46px; right: -21px; width: 22px; height: 2px; background: var(--accent-line);
+  }
+  .flow-n {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: #fff;
+    font-family: var(--font-display); font-weight: 700; box-shadow: var(--shadow-glow);
+  }
+  .flow-step h3 { margin-top: 20px; font-size: var(--fs-h4); font-weight: 650; }
+  .flow-step p { margin-top: 8px; font-size: var(--fs-sm); }
+
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(40px, 6vw, 96px); align-items: start; }
+  .includes { list-style: none; margin-top: 24px; display: grid; gap: 2px; }
+  .includes li { display: flex; gap: 14px; align-items: flex-start; padding: 16px 0; border-bottom: 1px solid var(--border); color: var(--ink); font-weight: 500; }
+  .includes :global(svg) { color: var(--accent); flex: none; margin-top: 2px; }
+  .outcomes { padding: 36px; border-radius: var(--radius-lg); background: var(--dark); color: var(--on-dark-muted); position: relative; overflow: hidden; isolation: isolate; }
+  .outcomes::before { content: ''; position: absolute; inset: -40% -40% auto auto; width: 80%; height: 120%; z-index: -1; background: radial-gradient(closest-side, rgba(139, 123, 255, 0.45), transparent); }
+  .outcomes .eyebrow { color: #a99cff; }
+  .outcomes .checks { margin-top: 24px; }
+  .outcomes .checks li { color: #fff; font-size: var(--fs-lg); font-weight: 500; }
+  .stack { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--dark-border); }
+  .stack-label { font-size: var(--fs-xs); margin-bottom: 12px; }
+  .stack ul { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; }
+  .stack .pill { background: rgba(255, 255, 255, 0.06); color: #fff; border-color: var(--dark-border); }
+
+  .fit { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .fit li { padding: 28px; }
+  .fit-k { font-size: var(--fs-label); font-weight: 600; letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--accent); }
+  .fit h3 { margin-top: 12px; font-size: var(--fs-h3); font-weight: 650; }
+  .fit p:last-child { margin-top: 8px; }
+
+  .case-feature { display: grid; grid-template-columns: 0.8fr 1.2fr; border-radius: var(--radius-lg); border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow-md); }
+  .cf-metric { padding: 40px; background: linear-gradient(135deg, var(--accent-soft), rgba(58, 167, 240, 0.08)); border-right: 1px solid var(--border); }
+  .cf-n {
+    margin-top: 20px; font-family: var(--font-display); font-weight: 700; font-size: clamp(2.6rem, 2rem + 2vw, 3.75rem); letter-spacing: -0.04em; line-height: 1;
+    background: linear-gradient(100deg, var(--accent), #8f6dff 50%, #3aa7f0); -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .cf-l { margin-top: 8px; font-size: var(--fs-sm); }
+  .cf-body { padding: 40px; display: flex; flex-direction: column; gap: 12px; justify-content: center; }
+  .cf-sector { font-size: var(--fs-label); font-weight: 600; letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--text-muted); }
+
+  .faq-grid { display: grid; grid-template-columns: 0.8fr 1.4fr; gap: clamp(40px, 6vw, 96px); align-items: start; }
+
+  .others { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .other { display: flex; align-items: center; gap: 14px; padding: 18px; height: 100%; }
+  .other-name { flex: 1; font-weight: 600; color: var(--ink); font-size: var(--fs-sm); line-height: 1.3; }
+  .other :global(.other-arrow) { color: var(--text-muted); flex: none; }
+  .other:hover :global(.other-arrow) { color: var(--accent); }
+
+  @media (max-width: 960px) {
+    .problem, .split, .faq-grid, .case-feature { grid-template-columns: 1fr; }
+    .cf-metric { border-right: 0; border-bottom: 1px solid var(--border); }
+    .flow { grid-template-columns: repeat(2, 1fr); }
+    .flow-step::after { display: none; }
+    .fit, .others { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 600px) {
+    .pain, .flow, .fit, .others { grid-template-columns: 1fr; }
+    .outcomes, .cf-metric, .cf-body { padding: 28px; }
+  }
+</style>

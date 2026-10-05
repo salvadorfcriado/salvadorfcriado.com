@@ -1,0 +1,42 @@
+---
+interface Props {
+  steps: { t: string; when: string; d: string }[];
+  dark?: boolean;
+}
+
+const { steps, dark = false } = Astro.props;
+---
+<ol class:list={['steps', { dark }]} role="list">
+  {steps.map((s, i) => (
+    <li class="step reveal" data-delay={String(i)}>
+      <div class="top">
+        <span class="n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+        <span class="when">{s.when}</span>
+      </div>
+      <h3>{s.t}</h3>
+      <p>{s.d}</p>
+    </li>
+  ))}
+</ol>
+
+<style>
+  .steps { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; counter-reset: s; }
+  .step {
+    position: relative; padding: 28px 24px 26px; border-radius: var(--radius-card);
+    background: var(--bg); border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+  }
+  .step::before {
+    content: ''; position: absolute; left: 24px; right: 24px; top: 0; height: 3px; border-radius: 0 0 3px 3px;
+    background: linear-gradient(90deg, var(--accent), #8f6dff, transparent);
+  }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .n { font-family: var(--font-display); font-weight: 700; font-size: 2rem; letter-spacing: -0.04em; color: var(--accent); line-height: 1; }
+  .when { font-size: var(--fs-label); font-weight: 600; letter-spacing: 0.04em; color: var(--text-muted); background: var(--surface); padding: 5px 10px; border-radius: 999px; white-space: nowrap; }
+  h3 { margin-top: 22px; font-size: var(--fs-h4); font-weight: 650; }
+  p { margin-top: 8px; font-size: var(--fs-sm); }
+  .dark .step { background: rgba(255, 255, 255, 0.04); border-color: var(--dark-border); box-shadow: none; }
+  .dark .when { background: rgba(255, 255, 255, 0.07); color: var(--on-dark-muted); }
+  .dark .n { color: #b4a8ff; }
+  @media (max-width: 960px) { .steps { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .steps { grid-template-columns: 1fr; } }
+</style>

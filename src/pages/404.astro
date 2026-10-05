@@ -3,13 +3,15 @@ import Base from '../layouts/Base.astro';
 import { SITE } from '../consts';
 ---
 {/* Cloudflare Pages serves this for every unmatched path, so it must not
-    canonicalise those requests to an indexable URL of its own. */}
+    canonicalise those requests to an indexable URL of its own. One page serves
+    both languages, so it says it in both. */}
 <Base
-  title="Nothing at this URL"
+  title="Nothing at this URL · Aquí no hay nada"
   description="That page does not exist. Start from the home page or go straight to the field notes."
   path="/404/"
   noindex={true}
   navSlot="back"
+  altPath={false}
 >
   <section class="nf">
     <p class="label">404</p>
@@ -19,15 +21,22 @@ import { SITE } from '../consts';
       <a href="/blog/">field notes</a>. If you were looking for something specific —
       <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.
     </p>
+    <h2 lang="es">Aquí no hay nada.</h2>
+    <p class="body" lang="es">
+      La página se movió o nunca existió. Vuelve al <a href="/es/">inicio</a> o ve directo a las
+      <a href="/es/blog/">notas técnicas</a>. Si buscabas algo concreto —
+      <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.
+    </p>
   </section>
 </Base>
 
 <style>
   .nf { max-width: 720px; margin: 0 auto; padding: 96px var(--space-section-x) 120px; }
-  .nf h1 {
+  .nf h1, .nf h2 {
     font-size: var(--text-h1); font-weight: 700; line-height: 1.1;
     letter-spacing: var(--tracking-display); margin: 14px 0 16px;
   }
+  .nf h2 { margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--border); }
   .body { font-size: var(--text-body-lg); max-width: var(--measure); }
   .body a { color: var(--accent); text-decoration: underline; }
   @media (max-width: 620px) {

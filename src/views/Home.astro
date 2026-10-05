@@ -1,0 +1,342 @@
+---
+/* Landing page, both languages. Written for the person deciding whether to
+   bring Salvador in on a project — usually not an engineer. Each section links
+   to a page that goes deeper: services, work, about, contact. Copy lives in
+   src/i18n/site/<lang>.ts. */
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import ServiceVideo from '../components/ServiceVideo.astro';
+import ServiceCard from '../components/ServiceCard.astro';
+import CaseCard from '../components/CaseCard.astro';
+import ProcessSteps from '../components/ProcessSteps.astro';
+import FAQ from '../components/FAQ.astro';
+import CTABand from '../components/CTABand.astro';
+import Capabilities from '../components/Capabilities.astro';
+import { SITE } from '../consts';
+import { copy, caseById } from '../i18n/site';
+import { route, serviceRoute } from '../i18n/routes';
+import { otherLang, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const c = copy(lang);
+const h = c.home;
+const voice = c.services.items[0];
+const featured = h.work.featured.map((id) => caseById(lang, id)!).filter(Boolean);
+const WHY_ICONS = ['user', 'layers', 'target', 'shield'] as const;
+const SECTOR_ICONS = ['building', 'crane', 'briefcase', 'chart', 'heart', 'chat'] as const;
+const TECH = ['AWS', 'Azure', 'Terraform', 'Kubernetes', 'Docker', 'Python', 'vLLM', 'Claude', 'Mistral', 'Qdrant', 'Langfuse', 'n8n'];
+
+const jsonLd = [
+  {
+    '@type': 'ProfilePage',
+    '@id': `${SITE.url}${route(lang, 'home')}#profilepage`,
+    url: `${SITE.url}${route(lang, 'home')}`,
+    name: h.meta.title,
+    mainEntity: { '@id': `${SITE.url}/#person` },
+    isPartOf: { '@id': `${SITE.url}/#website` },
+    inLanguage: lang,
+  },
+  {
+    '@type': 'WebSite',
+    '@id': `${SITE.url}/#website`,
+    url: SITE.url,
+    name: SITE.name,
+    description: h.meta.description,
+    publisher: { '@id': `${SITE.url}/#person` },
+    inLanguage: ['en', 'es'],
+  },
+  {
+    '@type': 'FAQPage',
+    '@id': `${SITE.url}${route(lang, 'home')}#faq`,
+    mainEntity: h.faq.items.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  },
+];
+---
+<Base
+  title={h.meta.title}
+  titleSuffix={false}
+  description={h.meta.description}
+  path={route(lang, 'home')}
+  altPath={route(otherLang(lang), 'home')}
+  jsonLd={jsonLd}
+  lang={lang}
+  current="home"
+>
+  <!-- ── Hero ─────────────────────────────────────────────────────────── -->
+  <section class="section section--dark glow hero">
+    <div class="grid-lines" aria-hidden="true"></div>
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <p class="pill badge"><span class="pill-dot" aria-hidden="true"></span>{h.hero.badge}</p>
+        <h1 class="display">{h.hero.pre}<span class="gradient-text">{h.hero.accent}</span>{h.hero.post}</h1>
+        <p class="lead">{h.hero.lead}</p>
+        <div class="cta">
+          <a class="btn btn-primary btn-lg" href={route(lang, 'contact')}>{h.hero.primary}<Icon name="arrow" /></a>
+          <a class="btn btn-glass btn-lg" href="#capabilities">{h.hero.secondary}</a>
+        </div>
+        <ul class="trust" role="list">
+          {h.hero.trust.map((t) => <li><Icon name="check" size={16} />{t}</li>)}
+        </ul>
+      </div>
+      <div class="hero-visual">
+        <ServiceVideo id="voice" lang={lang} label={voice.videoLabel} chrome eager />
+        <div class="float float-a" aria-hidden="true">
+          <span class="float-k">{h.hero.cardA.k}</span>
+          <span class="float-v">{h.hero.cardA.v}</span>
+        </div>
+        <div class="float float-b" aria-hidden="true">
+          <span class="float-icon"><Icon name="check" size={16} /></span>
+          <span><span class="float-k sm">{h.hero.cardB.k}</span><span class="float-v">{h.hero.cardB.v}</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="container tech">
+      <p class="tech-label">{h.tech}</p>
+      <ul class="tech-list" role="list">
+        {TECH.map((t) => <li>{t}</li>)}
+      </ul>
+    </div>
+  </section>
+
+  <!-- ── Capabilities ─────────────────────────────────────────────────── -->
+  <Capabilities c={c.capabilities} contactHref={route(lang, 'contact')} />
+
+  <!-- ── Services ─────────────────────────────────────────────────────── -->
+  <section class="section section--surface" id="services">
+    <div class="container">
+      <SectionHeader eyebrow={h.services.eyebrow} title={h.services.title} lead={h.services.lead}>
+        <a class="btn btn-secondary" href={route(lang, 'services')}>{c.nav.allServices}<Icon name="arrow" /></a>
+      </SectionHeader>
+      <div class="svc-grid">
+        {c.services.items.map((s, i) => <ServiceCard s={s} lang={lang} cta={c.common.viewService} index={i} />)}
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Sectors ──────────────────────────────────────────────────────── -->
+  <section class="section">
+    <div class="container">
+      <SectionHeader eyebrow={h.sectors.eyebrow} title={h.sectors.title} lead={h.sectors.lead} />
+      <ul class="sectors" role="list">
+        {h.sectors.items.map((s, i) => (
+          <li class="sector card reveal" data-delay={String(i % 3)}>
+            <span class="icon-tile"><Icon name={SECTOR_ICONS[i]} /></span>
+            <h3>{s.t}</h3>
+            <p>{s.d}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <!-- ── Proof: stats + work ──────────────────────────────────────────── -->
+  <section class="section section--dark glow" id="work">
+    <div class="container">
+      <SectionHeader eyebrow={h.work.eyebrow} title={h.work.title} lead={h.work.lead}>
+        <a class="btn btn-glass" href={route(lang, 'work')}>{c.common.viewAllWork}<Icon name="arrow" /></a>
+      </SectionHeader>
+      <dl class="stats">
+        {h.stats.map((s, i) => (
+          <div class:list={['stat', 'reveal', { big: i < 2 }]} data-delay={String(i % 4)}>
+            <dt>{s.l}</dt>
+            <dd><span class="gradient-text">{s.n}</span></dd>
+          </div>
+        ))}
+      </dl>
+      <div class="three">
+        {featured.map((k, i) => <CaseCard k={k} href={`${route(lang, 'work')}#${k.id}`} cta={c.common.learnMore} index={i} />)}
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Why ──────────────────────────────────────────────────────────── -->
+  <section class="section">
+    <div class="container why">
+      <div class="why-head">
+        <SectionHeader eyebrow={h.why.eyebrow} title={h.why.title} lead={h.why.lead} />
+        <a class="btn btn-primary" href={route(lang, 'about')}>{h.about.cta}<Icon name="arrow" /></a>
+      </div>
+      <ul class="why-grid" role="list">
+        {h.why.items.map((w, i) => (
+          <li class="why-item reveal" data-delay={String(i)}>
+            <span class="icon-tile"><Icon name={WHY_ICONS[i]} /></span>
+            <h3>{w.t}</h3>
+            <p>{w.d}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <!-- ── Process ──────────────────────────────────────────────────────── -->
+  <section class="section section--surface" id="process">
+    <div class="container">
+      <SectionHeader eyebrow={h.process.eyebrow} title={h.process.title} lead={h.process.lead} />
+      <ProcessSteps steps={h.process.steps} />
+    </div>
+  </section>
+
+  <!-- ── About ────────────────────────────────────────────────────────── -->
+  <section class="section">
+    <div class="container about">
+      <figure class="portrait reveal">
+        <img src="/img/portrait-390.webp" width="390" height="460" alt={c.about.hero.portraitAlt} loading="lazy" />
+        <figcaption><Icon name="pin" size={14} />{lang === 'es' ? 'Granada (España) · en remoto' : 'Granada, Spain · remote'}</figcaption>
+      </figure>
+      <div class="about-copy reveal" data-delay="1">
+        <p class="eyebrow">{h.about.eyebrow}</p>
+        <h2 class="h2">{h.about.title}</h2>
+        <p class="lead">{h.about.body}</p>
+        <ul class="checks" role="list">
+          {h.about.facts.map((f) => <li>{f}</li>)}
+        </ul>
+        <div class="about-links">
+          <a class="btn btn-secondary" href={route(lang, 'about')}>{h.about.cta}<Icon name="arrow" /></a>
+          <a class="link-arrow" href={route(lang, 'cv')}>{c.nav.cv}<Icon name="arrow" /></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FAQ ──────────────────────────────────────────────────────────── -->
+  <section class="section section--surface">
+    <div class="container faq-grid">
+      <div class="faq-head">
+        <SectionHeader eyebrow={h.faq.eyebrow} title={h.faq.title} />
+        <a class="btn btn-secondary" href={route(lang, 'contact')}>{c.common.contactCta}<Icon name="arrow" /></a>
+      </div>
+      <FAQ items={h.faq.items} />
+    </div>
+  </section>
+
+  <div class="spacer"></div>
+  <CTABand lang={lang} />
+</Base>
+
+<style>
+  /* Hero */
+  .hero { padding-top: clamp(56px, 7vw, 96px); padding-bottom: 48px; }
+  .hero-grid { display: grid; grid-template-columns: 1.12fr 0.95fr; gap: clamp(40px, 5vw, 72px); align-items: center; }
+  .badge { margin-bottom: 24px; }
+  .display { color: #fff; }
+  .hero .lead { margin-top: 24px; font-size: clamp(1.0625rem, 1rem + 0.4vw, 1.25rem); }
+  .cta { margin-top: 36px; }
+  .trust { list-style: none; display: flex; flex-wrap: wrap; gap: 10px 22px; margin-top: 28px; font-size: var(--fs-sm); }
+  .trust li { display: inline-flex; align-items: center; gap: 8px; color: var(--on-dark-muted); }
+  .trust :global(svg) { color: #8ef0c4; }
+  .hero-visual { position: relative; }
+  .float {
+    position: absolute; display: flex; align-items: center; gap: 12px;
+    padding: 14px 18px; border-radius: 16px;
+    background: rgba(22, 20, 44, 0.78); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.14); color: #fff;
+    box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.7);
+    animation: bob 6s ease-in-out infinite;
+  }
+  .float-a { left: -32px; bottom: -28px; flex-direction: column; align-items: flex-start; gap: 2px; }
+  .float-b { right: -24px; top: -26px; animation-delay: -3s; }
+  .float-k { font-family: var(--font-display); font-weight: 700; font-size: 1.75rem; letter-spacing: -0.03em; line-height: 1; }
+  .float-k.sm { display: block; font-size: 1rem; letter-spacing: -0.01em; }
+  .float-v { display: block; font-size: var(--fs-xs); color: var(--on-dark-muted); }
+  .float-icon { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; background: #34d399; color: #062b1d; }
+  @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+  @media (prefers-reduced-motion: reduce) { .float { animation: none; } }
+
+  .tech { margin-top: clamp(56px, 7vw, 88px); padding-top: 28px; border-top: 1px solid var(--dark-border); display: flex; align-items: center; gap: 32px; }
+  .tech-label { flex: none; font-size: var(--fs-xs); color: var(--on-dark-muted); max-width: 12em; line-height: 1.4; }
+  .tech-list { list-style: none; display: flex; flex-wrap: wrap; gap: 10px 30px; }
+  .tech-list li { font-family: var(--font-display); font-weight: 600; font-size: 1.0625rem; letter-spacing: -0.01em; color: rgba(255, 255, 255, 0.55); }
+
+  /* Services */
+  .svc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+  /* Stats — bento: the two automation results large, the rest in two rows of three. */
+  .stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; margin: 0 0 56px; }
+  .stat {
+    grid-column: span 2; position: relative; overflow: hidden;
+    display: flex; flex-direction: column-reverse; justify-content: flex-end; gap: 10px;
+    padding: 24px 24px 22px; border-radius: 20px;
+    background: rgba(255, 255, 255, 0.035); border: 1px solid var(--dark-border);
+  }
+  .stat.big {
+    grid-column: span 3; padding: 32px 32px 28px;
+    background:
+      radial-gradient(120% 120% at 100% 0%, rgba(139, 123, 255, 0.32), transparent 60%),
+      rgba(255, 255, 255, 0.05);
+    border-color: rgba(139, 123, 255, 0.35);
+  }
+  .stat dd { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 1.6rem + 1.4vw, 2.75rem); letter-spacing: -0.04em; line-height: 1; white-space: nowrap; }
+  .stat.big dd { font-size: clamp(3rem, 2.2rem + 3vw, 4.75rem); }
+  .stat dt { font-size: var(--fs-sm); color: var(--on-dark-muted); max-width: 22em; line-height: 1.45; }
+  .stat.big dt { font-size: var(--fs-body); color: #e4e0ff; }
+  /* Why */
+  .why { display: grid; grid-template-columns: 1fr 1.3fr; gap: clamp(40px, 6vw, 96px); align-items: start; }
+  .why-head { position: sticky; top: 108px; }
+  .why-grid { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .why-item { padding: 28px; border-radius: var(--radius-card); background: var(--surface); border: 1px solid var(--border); }
+  .why-item h3 { margin-top: 20px; font-size: var(--fs-h4); font-weight: 650; }
+  .why-item p { margin-top: 8px; font-size: var(--fs-sm); }
+
+  /* Work */
+  .three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+  /* Sectors */
+  .sectors { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .sector { padding: 28px 24px; }
+  .sector h3 { margin-top: 20px; font-size: var(--fs-h4); font-weight: 650; }
+  .sector p { margin-top: 8px; font-size: var(--fs-sm); }
+
+  /* About */
+  .about { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: clamp(40px, 6vw, 96px); align-items: center; }
+  .portrait { position: relative; margin: 0; }
+  .portrait img { width: 100%; max-width: 420px; aspect-ratio: 390 / 460; height: auto; object-fit: cover; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); }
+  .portrait::before {
+    content: ''; position: absolute; inset: 24px -20px -20px 24px; z-index: -1; max-width: 420px;
+    border-radius: var(--radius-lg); background: linear-gradient(135deg, var(--accent-soft), rgba(58, 167, 240, 0.12));
+  }
+  .portrait figcaption {
+    position: absolute; left: 16px; bottom: 16px; display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 12px; border-radius: 999px; background: rgba(12, 11, 25, 0.8); color: #fff; font-size: var(--fs-xs); backdrop-filter: blur(8px);
+  }
+  .about-copy .h2 { margin-top: 14px; }
+  .about-copy .lead { margin-top: 18px; }
+  .about-copy .checks { margin-top: 24px; }
+  .about-links { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; margin-top: 28px; }
+  .spacer { height: clamp(48px, 6vw, 80px); }
+
+  /* FAQ */
+  .faq-grid { display: grid; grid-template-columns: 0.85fr 1.4fr; gap: clamp(40px, 6vw, 96px); align-items: start; }
+  .faq-head { position: sticky; top: 108px; }
+
+
+  @media (max-width: 1100px) {
+    .svc-grid { grid-template-columns: repeat(2, 1fr); }
+    .float-a { left: 12px; }
+    .float-b { right: 12px; }
+  }
+  @media (max-width: 960px) {
+    .hero-grid { grid-template-columns: 1fr; }
+    .tech { flex-direction: column; align-items: flex-start; gap: 16px; }
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .stat, .stat.big { grid-column: span 1; }
+    .stat.big { grid-column: 1 / -1; }
+    .why, .faq-grid, .about { grid-template-columns: 1fr; }
+    .why-head, .faq-head { position: static; }
+    .three { grid-template-columns: 1fr; }
+    .sectors { grid-template-columns: repeat(2, 1fr); }
+    .portrait { max-width: 360px; }
+  }
+  @media (max-width: 600px) {
+    .stat { padding: 18px; }
+    .stat dd { font-size: 1.6rem; }
+    .stat.big { padding: 24px; }
+    .stat.big dd { font-size: 2.75rem; }
+    .svc-grid, .why-grid, .sectors { grid-template-columns: 1fr; }
+    .float { display: none; }
+  }
+</style>

@@ -1,0 +1,101 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import PostRow from '../components/PostRow.astro';
+import TagChips from '../components/TagChips.astro';
+import { SITE } from '../consts';
+import { UI, localePath, tagBlurbIn, tagLabelIn, type Lang, type Post } from '../i18n/ui';
+
+/* An archive this thin has no unique content beyond a heading and one link —
+   it is a near-duplicate of the row already on /blog/. Keep the page (it is
+   linked from every chip row) but keep it out of the index until it grows. */
+const THIN_ARCHIVE = 3;
+
+interface Props {
+  lang: Lang;
+  tag: string;
+  tagsInUse: string[];
+  posts: Post[];
+}
+
+const { lang, tag, tagsInUse, posts } = Astro.props;
+const t = UI[lang].blog;
+const BLOG = t;
+const L = (p: string) => localePath(lang, p);
+const here = L(`/blog/tags/${tag}/`);
+const label = tagLabelIn(lang, tag);
+const blurb = tagBlurbIn(lang, tag);
+const thin = posts.length < THIN_ARCHIVE;
+
+const jsonLd = [
+  {
+    '@type': 'CollectionPage',
+    '@id': `${SITE.url}${here}#archive`,
+    name: `${label} — ${BLOG.name}`,
+    description: blurb,
+    url: `${SITE.url}${here}`,
+    isPartOf: { '@id': `${SITE.url}${L('/blog/')}#blog` },
+    about: label,
+    inLanguage: lang,
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: posts.length,
+      itemListElement: posts.map((p, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        url: `${SITE.url}${L(`/blog/${p.id}/`)}`,
+        name: p.data.title,
+      })),
+    },
+  },
+  {
+    '@type': 'BreadcrumbList',
+    '@id': `${SITE.url}${here}#breadcrumb`,
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: t.home, item: `${SITE.url}${L('/')}` },
+      { '@type': 'ListItem', position: 2, name: BLOG.name, item: `${SITE.url}${L('/blog/')}` },
+      { '@type': 'ListItem', position: 3, name: label },
+    ],
+  },
+];
+---
+<Base
+  title={`${label} — ${BLOG.name}`}
+  ogTitle={label}
+  description={blurb}
+  path={here}
+  ogImage={`/img/og/tags/${tag}.png`}
+  ogImageAlt={`${label} — ${BLOG.name}`}
+  noindex={thin}
+  current="blog"
+  jsonLd={jsonLd}
+  lang={lang}
+>
+  <PageHero eyebrow={t.topic} title={label} lead={blurb}>
+    <p class="count">
+      {t.posts(posts.length)}
+      {' · '}<a href={L('/blog/')}>{t.allPosts}</a>
+    </p>
+    <nav class="filters" aria-label={t.filter}>
+      <TagChips tags={tagsInUse} current={tag} lang={lang} />
+    </nav>
+  </PageHero>
+
+  <section class="section">
+    <div class="wrap">
+      <ul class="post-rows" role="list">
+        {posts.map((p) => <PostRow post={p} lang={lang} />)}
+      </ul>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .count { margin-top: 18px; font-size: var(--fs-sm); }
+  .count a { color: #c2b8ff; font-weight: 600; }
+  .count a:hover, .count a:focus-visible { color: #fff; }
+  .filters { margin-top: 28px; }
+  .post-rows { list-style: none; margin: 0; padding: 0; }
+  .post-rows :global(li) { border-top: 1px solid var(--border); }
+  .post-rows :global(li:first-child) { border-top: 0; }
+</style>

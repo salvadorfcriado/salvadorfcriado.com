@@ -5,13 +5,17 @@ import sitemap from '@astrojs/sitemap';
 /* lastmod per post, so a recrawl has a reason. Read straight from the
    frontmatter rather than the content collection — this file runs before it. */
 const BLOG_DIR = './src/content/blog';
+/* Spanish translations keep the English file name and date — see content.config.ts. */
 const POST_DATES = Object.fromEntries(
   readdirSync(BLOG_DIR)
     .filter((f) => f.endsWith('.md'))
-    .map((f) => {
+    .flatMap((f) => {
       const slug = f.replace(/\.md$/, '');
       const date = readFileSync(`${BLOG_DIR}/${f}`, 'utf8').match(/^date:\s*['"]?(\d{4}-\d{2}-\d{2})/m)?.[1];
-      return [`https://salvadorfcriado.com/blog/${slug}/`, date];
+      return [
+        [`https://salvadorfcriado.com/blog/${slug}/`, date],
+        [`https://salvadorfcriado.com/es/blog/${slug}/`, date],
+      ];
     }),
 );
 const BUILD_DAY = new Date().toISOString().slice(0, 10);
@@ -29,7 +33,10 @@ const TAG_COUNTS = readdirSync(BLOG_DIR)
 const THIN_TAG_URLS = new Set(
   Object.entries(TAG_COUNTS)
     .filter(([, n]) => n < THIN_ARCHIVE)
-    .map(([t]) => `https://salvadorfcriado.com/blog/tags/${t}/`),
+    .flatMap(([t]) => [
+      `https://salvadorfcriado.com/blog/tags/${t}/`,
+      `https://salvadorfcriado.com/es/blog/tags/${t}/`,
+    ]),
 );
 
 export default defineConfig({
@@ -41,6 +48,8 @@ export default defineConfig({
   integrations: [
     sitemap({
       filter: (page) => !THIN_TAG_URLS.has(page),
+      /* Pairs /x/ with /es/x/ as xhtml:link alternates. */
+      i18n: { defaultLocale: 'en', locales: { en: 'en', es: 'es' } },
       serialize: (item) => ({ ...item, lastmod: POST_DATES[item.url] ?? BUILD_DAY }),
     }),
   ],

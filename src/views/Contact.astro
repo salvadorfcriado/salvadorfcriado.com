@@ -1,0 +1,111 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import PageHero from '../components/PageHero.astro';
+import { SITE } from '../consts';
+import { copy, mailto } from '../i18n/site';
+import { route, dossierPdf } from '../i18n/routes';
+import { UI, otherLang, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const c = copy(lang);
+const k = c.contact;
+const ui = UI[lang];
+---
+<Base
+  title={k.meta.title}
+  description={k.meta.description}
+  path={route(lang, 'contact')}
+  altPath={route(otherLang(lang), 'contact')}
+  lang={lang}
+  current="contact"
+>
+  <PageHero eyebrow={k.hero.eyebrow} title={k.hero.title} lead={k.hero.lead}>
+    <div class="channels">
+      <a class="channel primary" href={mailto(lang)}>
+        <span class="ch-icon"><Icon name="mail" /></span>
+        <span class="ch-body"><strong>{k.channels.email.t}</strong><span class="ch-value">{SITE.email}</span><span class="ch-d">{k.channels.email.d}</span></span>
+        <Icon name="arrow" class="ch-arrow" />
+      </a>
+      <a class="channel" href={SITE.linkedin} rel="me noopener" target="_blank">
+        <span class="ch-icon"><Icon name="linkedin" /></span>
+        <span class="ch-body"><strong>{k.channels.linkedin.t}<span class="sr-only">{ui.newTab}</span></strong><span class="ch-value">linkedin.com/in/salvadorfcriado</span><span class="ch-d">{k.channels.linkedin.d}</span></span>
+        <Icon name="arrowUpRight" class="ch-arrow" />
+      </a>
+      <a class="channel" href={dossierPdf(lang)} download>
+        <span class="ch-icon"><Icon name="download" /></span>
+        <span class="ch-body"><strong>{k.channels.dossier.t}</strong><span class="ch-d">{k.channels.dossier.d}</span></span>
+        <Icon name="arrow" class="ch-arrow" />
+      </a>
+    </div>
+  </PageHero>
+
+  <section class="section">
+    <div class="container grid">
+      <div class="card block reveal">
+        <span class="icon-tile"><Icon name="doc" /></span>
+        <h2 class="h3">{k.include.title}</h2>
+        <ul class="checks" role="list">{k.include.items.map((x) => <li>{x}</li>)}</ul>
+        <a class="btn btn-primary" href={mailto(lang)}><Icon name="mail" />{c.cta.primary}</a>
+      </div>
+      <div class="block next reveal" data-delay="1">
+        <h2 class="h3">{k.next.title}</h2>
+        <ol class="steps" role="list">
+          {k.next.steps.map((s, i) => (
+            <li>
+              <span class="n" aria-hidden="true">{i + 1}</span>
+              <div><h3>{s.t}</h3><p>{s.d}</p></div>
+            </li>
+          ))}
+        </ol>
+        <div class="hours">
+          <Icon name="clock" />
+          <div><strong>{k.hours.t}</strong><p>{k.hours.d}</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .channels { display: grid; gap: 12px; margin-top: 40px; max-width: 640px; }
+  .channel {
+    display: flex; align-items: center; gap: 18px; padding: 20px 22px; border-radius: 18px;
+    background: rgba(255, 255, 255, 0.05); border: 1px solid var(--dark-border); color: var(--on-dark-muted);
+    transition: background-color 180ms, border-color 180ms, transform 180ms var(--ease);
+  }
+  .channel:hover, .channel:focus-visible { background: rgba(255, 255, 255, 0.09); border-color: rgba(255, 255, 255, 0.22); transform: translateY(-2px); }
+  .channel.primary { background: linear-gradient(120deg, rgba(109, 90, 230, 0.4), rgba(109, 90, 230, 0.12)); border-color: rgba(139, 123, 255, 0.5); }
+  .ch-icon { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 48px; height: 48px; border-radius: 14px; background: rgba(255, 255, 255, 0.08); color: #fff; }
+  .ch-body { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+  .ch-body strong { color: #fff; font-weight: 600; }
+  .ch-value { color: #d9d3ff; font-weight: 500; overflow-wrap: anywhere; }
+  .ch-d { font-size: var(--fs-xs); }
+  .channel :global(.ch-arrow) { color: #fff; flex: none; opacity: 0.7; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  .block { padding: clamp(28px, 4vw, 40px); }
+  .block .h3 { margin: 20px 0 20px; }
+  .block .checks { margin-bottom: 28px; }
+  .next .h3 { margin-top: 0; }
+  .steps { list-style: none; display: flex; flex-direction: column; gap: 20px; }
+  .steps li { display: flex; gap: 16px; }
+  .n { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-weight: 700; font-family: var(--font-display); border: 1px solid var(--accent-line); }
+  .steps h3 { font-size: var(--fs-h4); font-weight: 650; }
+  .steps p { margin-top: 4px; font-size: var(--fs-sm); }
+  .hours { display: flex; gap: 14px; margin-top: 32px; padding: 20px; border-radius: 16px; background: var(--surface); border: 1px solid var(--border); }
+  .hours :global(svg) { color: var(--accent); flex: none; }
+  .hours strong { color: var(--ink); }
+  .hours p { font-size: var(--fs-sm); margin-top: 4px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+  @media (max-width: 480px) {
+    .channel { padding: 16px; gap: 14px; }
+    .ch-icon { width: 40px; height: 40px; border-radius: 12px; }
+    .channel :global(.ch-arrow) { display: none; }
+    .ch-value { font-size: 0.875rem; overflow-wrap: normal; }
+  }
+</style>

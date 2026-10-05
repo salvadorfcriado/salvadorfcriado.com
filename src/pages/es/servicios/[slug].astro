@@ -1,0 +1,11 @@
+---
+import ServiceDetail from '../../../views/ServiceDetail.astro';
+import { SERVICE_IDS, SERVICE_SLUGS } from '../../../i18n/routes';
+
+export function getStaticPaths() {
+  return SERVICE_IDS.map((id) => ({ params: { slug: SERVICE_SLUGS[id].es }, props: { id } }));
+}
+
+const { id } = Astro.props;
+---
+<ServiceDetail lang="es" id={id} />

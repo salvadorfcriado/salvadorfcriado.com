@@ -12,6 +12,11 @@ Custom domains on the project: `salvadorfcriado.com`, `www.salvadorfcriado.com`.
 
 ### Deploying
 
+The dossier PDFs in `public/dossier/` are rendered from the built site, so a content change
+needs `npm run build && npm run dossier && npm run build` before uploading. The video MIME
+types (`.mp4`, `.webm`) are in `scripts/pages-upload.mjs`; without them the clips upload as
+`application/octet-stream`.
+
 ```bash
 npm run build
 # 1. Fetch a short-lived upload token (account credentials required):
@@ -84,19 +89,16 @@ look authoritative and do nothing.
 → 301 to `concat("https://salvadorfcriado.com", http.request.uri.path)`, query preserved.
 The apex is canonical; without this every page is reachable at two hosts.
 
-**Redirect rule** — retired CV: `starts_with(http.request.uri.path, "/cv/")` → 301 to
-`https://salvadorfcriado.com/`. The PDF was removed from the site, and the URL had been sent
-out in applications and indexed; without the rule those links land on the 404 page.
+**Redirect rule** — old CV URLs: `(starts_with(http.request.uri.path, "/cv/") and
+http.request.uri.path ne "/cv/") or http.request.uri.path eq "/cv"` → 301 to
+`https://salvadorfcriado.com/cv/`. **Changed 2026-10-05.** It used to send every `/cv/` URL to
+the home page (the CV PDF had been retired); `/cv/` is now a real page again (project-oriented
+experience), so the rule only catches the old PDF and sub-path links that went out in
+applications, and lands them on that page.
 
-**Redirect rule** — retired services page: `starts_with(http.request.uri.path, "/services/")`
-or `= "/services"` → 301 to `https://salvadorfcriado.com/`. **Applied 2026-08-25.** Two jobs:
-it keeps inbound links working, and it defeats the edge cache — the old consulting page was
-still being served with `age: 16458` under an `s-maxage=604800`, so deleting it from the
-deployment alone would have left it up for a week. Redirect rules run before cache.
-
-*This is a placeholder target.* It should point at `https://scdap.es/` the moment that zone
-serves its own consulting page. It cannot today: `scdap.es` still redirects here, so the
-pair would loop.
+**Redirect rule** — retired services page: **deleted 2026-10-05.** `/services/` and the
+service detail pages under it are live again (the site is now the commercial surface, ES at
+`/es/servicios/`). Rule IDs and history are in the zone's ruleset versions.
 
 **Response header rules** (`http_response_headers_transform`):
 
@@ -112,8 +114,11 @@ pair would loop.
    portrait is the landing page's LCP resource and was falling through to the Pages
    default (`max-age=0, must-revalidate`), so it revalidated on every navigation.
 
-**Content Security Policy.** The site ships zero executable JavaScript and contacts zero
-third-party origins, so a near-maximal policy applies cleanly:
+**Content Security Policy.** *Out of date since 2026-10-05:* the site now ships small
+first-party scripts (scroll reveal, video autoplay, header state) and an inline `html.js`
+flag, so the policy below would break it — it would need `script-src 'self'` plus a hash for
+the inline flag. The original note, for reference: the site shipped zero executable
+JavaScript and contacted zero third-party origins, so a near-maximal policy applied cleanly:
 
 ```
 default-src 'self'; script-src 'none'; style-src 'self' 'unsafe-inline';

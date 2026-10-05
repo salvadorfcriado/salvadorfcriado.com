@@ -2,16 +2,17 @@
 /* Topic chips. Plain links to prerendered archives — no JavaScript, so they
    work for a crawler and for a reader with scripting off, and every topic has a
    URL that can be cited. `current` marks the archive you are already on. */
-import { tagLabel } from '../tags';
+import { localePath, tagLabelIn, type Lang } from '../i18n/ui';
 
 interface Props {
   tags: readonly string[];
   current?: string;
   /* 'row' on index/archive pages, 'inline' in a post header. */
   variant?: 'row' | 'inline';
+  lang?: Lang;
 }
 
-const { tags, current, variant = 'row' } = Astro.props;
+const { tags, current, variant = 'row', lang = 'en' } = Astro.props;
 ---
 {/* role="list" — WebKit drops list semantics when list-style is none. */}
 <ul class:list={['chips', variant]} role="list">
@@ -19,9 +20,9 @@ const { tags, current, variant = 'row' } = Astro.props;
     <li>
       <a
         class:list={['chip', { active: slug === current }]}
-        href={`/blog/tags/${slug}/`}
+        href={localePath(lang, `/blog/tags/${slug}/`)}
         aria-current={slug === current ? 'page' : undefined}
-      >{tagLabel(slug)}</a>
+      >{tagLabelIn(lang, slug)}</a>
     </li>
   ))}
 </ul>

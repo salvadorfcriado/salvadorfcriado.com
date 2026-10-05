@@ -1,0 +1,196 @@
+---
+/* Site header. Dark glass bar on every page; becomes solid once the page is
+   scrolled (class toggled by the script in Base.astro). The services menu is a
+   hover/focus panel on desktop and part of a <details> drawer on mobile, so
+   neither needs JavaScript to open. */
+import Icon from './Icon.astro';
+import { SITE } from '../consts';
+import { copy, SERVICE_ICON } from '../i18n/site';
+import { route, serviceRoute, SERVICE_IDS, type PageKey } from '../i18n/routes';
+import { UI, otherLang, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  /* The same page in the other language; `false` hides the switcher. */
+  twinPath: string | false;
+  current?: PageKey;
+}
+
+const { lang, twinPath, current } = Astro.props;
+const c = copy(lang);
+const twin = otherLang(lang);
+const t = UI[lang].nav;
+const services = SERVICE_IDS.map((id) => ({ id, href: serviceRoute(lang, id), s: c.services.items.find((x) => x.id === id)! }));
+const links: { key: PageKey; label: string }[] = [
+  { key: 'work', label: c.nav.work },
+  { key: 'about', label: c.nav.about },
+  { key: 'blog', label: c.nav.blog },
+];
+---
+<header class="site-header" data-header>
+  <div class="bar">
+    <a class="brand" href={route(lang, 'home')} aria-label={`${SITE.name} — ${c.nav.servicesIntro}`}>
+      <span class="mark" aria-hidden="true">SC</span>
+      <span class="name">{SITE.name}</span>
+    </a>
+
+    <nav class="nav" aria-label={t.main}>
+      <div class="has-menu">
+        <a href={route(lang, 'services')} class:list={['nav-link', { active: current === 'services' }]} aria-haspopup="true">
+          {c.nav.services}
+          <svg class="caret" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5l3 3 3-3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" /></svg>
+        </a>
+        <div class="menu" role="group" aria-label={c.nav.services}>
+          <div class="menu-inner">
+            <ul role="list">
+              {services.map(({ id, href, s }) => (
+                <li>
+                  <a href={href} class="menu-item">
+                    <span class="icon-tile"><Icon name={SERVICE_ICON[id]} /></span>
+                    <span>
+                      <strong>{s.name}</strong>
+                      <span class="menu-desc">{s.tagline}</span>
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <a class="menu-all link-arrow" href={route(lang, 'services')}>{c.nav.allServices}<Icon name="arrow" /></a>
+          </div>
+        </div>
+      </div>
+      {links.map((l) => (
+        <a href={route(lang, l.key)} class:list={['nav-link', { active: current === l.key }]} aria-current={current === l.key ? 'page' : undefined}>{l.label}</a>
+      ))}
+    </nav>
+
+    <div class="actions">
+      {twinPath !== false && (
+        <a class="lang" href={twinPath} hreflang={twin} lang={twin} aria-label={t.switchLabel}>
+          <Icon name="globe" size={16} />
+          <span>{twin.toUpperCase()}</span>
+        </a>
+      )}
+      <a class="btn btn-primary btn-sm" href={route(lang, 'contact')}>{c.nav.cta}<Icon name="arrow" /></a>
+
+      <details class="mobile" data-mobile-menu>
+        <summary aria-label={c.nav.menu}>
+          <Icon name="menu" class="i-open" />
+          <Icon name="close" class="i-close" />
+        </summary>
+        <div class="drawer">
+          <p class="drawer-label">{c.nav.services}</p>
+          <ul role="list" class="drawer-services">
+            {services.map(({ id, href, s }) => (
+              <li><a href={href}><span class="icon-tile"><Icon name={SERVICE_ICON[id]} /></span>{s.name}</a></li>
+            ))}
+          </ul>
+          <ul role="list" class="drawer-links">
+            <li><a href={route(lang, 'services')}>{c.nav.allServices}</a></li>
+            {links.map((l) => <li><a href={route(lang, l.key)}>{l.label}</a></li>)}
+            <li><a href={route(lang, 'contact')}>{c.nav.contact}</a></li>
+          </ul>
+          <a class="btn btn-primary btn-lg drawer-cta" href={route(lang, 'contact')}>{c.common.contactCta}<Icon name="arrow" /></a>
+        </div>
+      </details>
+    </div>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky; top: 0; z-index: 50;
+    padding: 0 var(--gutter);
+    background: rgba(12, 11, 25, 0.72);
+    backdrop-filter: saturate(160%) blur(14px);
+    -webkit-backdrop-filter: saturate(160%) blur(14px);
+    border-bottom: 1px solid var(--dark-border);
+    color: var(--on-dark);
+    transition: background-color 240ms;
+  }
+  :global(.site-header.scrolled) { background: rgba(12, 11, 25, 0.94); }
+  .bar {
+    max-width: var(--container); margin: 0 auto; height: 68px;
+    display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  }
+  .brand { display: inline-flex; align-items: center; gap: 12px; font-family: var(--font-display); font-weight: 650; font-size: 1.0625rem; letter-spacing: -0.01em; }
+  .mark {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(135deg, #8b7bff, var(--accent) 55%, #4b3bc4);
+    color: #fff; font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.02em;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 6px 18px -6px rgba(109, 90, 230, 0.7);
+  }
+  .nav { display: flex; align-items: center; gap: 4px; }
+  .nav-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px; border-radius: 10px;
+    font-size: var(--fs-sm); font-weight: 500; color: rgba(255, 255, 255, 0.78);
+  }
+  .nav-link:hover, .nav-link:focus-visible, .nav-link.active { color: #fff; background: rgba(255, 255, 255, 0.06); }
+  .caret { opacity: 0.7; transition: transform 200ms; }
+
+  /* Services panel */
+  .has-menu { position: relative; }
+  .menu {
+    position: absolute; top: 100%; left: -12px; padding-top: 12px;
+    opacity: 0; visibility: hidden; transform: translateY(6px);
+    transition: opacity 180ms var(--ease), transform 180ms var(--ease), visibility 180ms;
+  }
+  .has-menu:hover .menu, .has-menu:focus-within .menu { opacity: 1; visibility: visible; transform: none; }
+  .has-menu:hover .caret, .has-menu:focus-within .caret { transform: rotate(180deg); }
+  .menu-inner {
+    width: 440px; padding: 10px; border-radius: 18px;
+    background: #fff; color: var(--text); box-shadow: var(--shadow-lg); border: 1px solid var(--border);
+  }
+  .menu ul { list-style: none; }
+  .menu-item { display: flex; gap: 14px; align-items: flex-start; padding: 12px; border-radius: 12px; }
+  .menu-item:hover, .menu-item:focus-visible { background: var(--surface); }
+  .menu-item .icon-tile { width: 40px; height: 40px; border-radius: 11px; }
+  .menu-item .icon-tile :global(svg) { width: 20px; height: 20px; }
+  .menu-item strong { display: block; color: var(--ink); font-size: var(--fs-sm); font-weight: 600; }
+  .menu-desc { display: block; font-size: var(--fs-xs); line-height: 1.45; color: var(--text-muted); margin-top: 2px; }
+  .menu-all { margin: 6px 12px 8px; }
+
+  .actions { display: flex; align-items: center; gap: 10px; }
+  .lang {
+    display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 12px;
+    border-radius: 10px; border: 1px solid var(--dark-border);
+    font-size: var(--fs-xs); font-weight: 600; letter-spacing: 0.04em; color: rgba(255, 255, 255, 0.85);
+  }
+  .lang:hover, .lang:focus-visible { background: rgba(255, 255, 255, 0.08); color: #fff; }
+  .btn-sm { min-height: 40px; padding: 0 16px; font-size: var(--fs-xs); box-shadow: none; }
+
+  /* Mobile drawer */
+  .mobile { display: none; }
+  .mobile summary {
+    list-style: none; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 42px; height: 42px; border-radius: 10px; border: 1px solid var(--dark-border);
+  }
+  .mobile summary::-webkit-details-marker { display: none; }
+  .mobile :global(.i-close) { display: none; }
+  .mobile[open] :global(.i-close) { display: block; }
+  .mobile[open] :global(.i-open) { display: none; }
+  .drawer {
+    position: fixed; left: 0; right: 0; top: 68px; bottom: 0; overflow-y: auto;
+    padding: 24px var(--gutter) 40px;
+    background: var(--dark); border-top: 1px solid var(--dark-border);
+  }
+  .drawer-label { font-size: var(--fs-label); font-weight: 600; letter-spacing: var(--tracking-label); text-transform: uppercase; color: #a99cff; margin-bottom: 8px; }
+  .drawer ul { list-style: none; }
+  .drawer-services a { display: flex; align-items: center; gap: 14px; padding: 10px 0; font-weight: 500; color: #fff; }
+  .drawer-services .icon-tile { width: 38px; height: 38px; background: rgba(139, 123, 255, 0.12); color: #b4a8ff; border-color: rgba(139, 123, 255, 0.28); }
+  .drawer-services .icon-tile :global(svg) { width: 19px; height: 19px; }
+  .drawer-links { margin-top: 18px; border-top: 1px solid var(--dark-border); padding-top: 8px; }
+  .drawer-links a { display: block; padding: 14px 0; font-family: var(--font-display); font-size: 1.375rem; font-weight: 600; color: #fff; border-bottom: 1px solid var(--dark-border); }
+  .drawer-cta { width: 100%; margin-top: 28px; }
+
+  @media (max-width: 1020px) {
+    .nav, .actions > .btn { display: none; }
+    .mobile { display: block; }
+  }
+  @media (max-width: 350px) {
+    .name { display: none; }
+  }
+</style>

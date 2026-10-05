@@ -1,0 +1,151 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import PageHero from '../components/PageHero.astro';
+import CTABand from '../components/CTABand.astro';
+import { copy } from '../i18n/site';
+import { route, serviceRoute } from '../i18n/routes';
+import { UI, otherLang, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const c = copy(lang);
+const w = c.work;
+const serviceName = (id: string) => c.services.items.find((s) => s.id === id)?.name ?? id;
+const cases = w.items.filter((k) => k.id !== 'gestoia');
+---
+<Base
+  title={w.meta.title}
+  description={w.meta.description}
+  path={route(lang, 'work')}
+  altPath={route(otherLang(lang), 'work')}
+  lang={lang}
+  current="work"
+>
+  <PageHero eyebrow={w.hero.eyebrow} title={w.hero.title} lead={w.hero.lead}>
+    <ul class="index" role="list">
+      {cases.map((k) => (
+        <li><a href={`#${k.id}`}><span class="i-metric">{k.metric}</span><span class="i-sector">{k.sector}</span></a></li>
+      ))}
+    </ul>
+  </PageHero>
+
+  <section class="section">
+    <div class="container">
+      <p class="note"><Icon name="shield" size={16} />{w.note}</p>
+      <div class="cases">
+        {cases.map((k, i) => (
+          <article class="case reveal" id={k.id}>
+            <header class="case-head">
+              <div>
+                <p class="sector">{String(i + 1).padStart(2, '0')} · {k.sector}</p>
+                <h2 class="h3">{k.title}</h2>
+                <p class="summary">{k.summary}</p>
+              </div>
+              <div class="metric-box">
+                <p class="metric">{k.metric}</p>
+                <p class="metric-label">{k.metricLabel}</p>
+              </div>
+            </header>
+            <div class="csr">
+              <div><p class="csr-k">{c.common.challenge}</p><p>{k.challenge}</p></div>
+              <div><p class="csr-k">{c.common.solution}</p><p>{k.solution}</p></div>
+              <div><p class="csr-k">{c.common.result}</p><p class="result">{k.result}</p></div>
+            </div>
+            <footer class="case-foot">
+              <ul class="stack" role="list">{k.stack.map((t) => <li class="pill">{t}</li>)}</ul>
+              <ul class="svcs" role="list">
+                {k.services.map((id) => (
+                  <li><a class="link-arrow" href={serviceRoute(lang, id)}>{serviceName(id)}<Icon name="arrow" /></a></li>
+                ))}
+              </ul>
+            </footer>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--dark glow" id="gestoia">
+    <div class="container product">
+      <div class="reveal">
+        <p class="eyebrow">{w.product.eyebrow}</p>
+        <h2 class="h2">{w.product.title}</h2>
+        <p class="lead">{w.product.body}</p>
+        <ul class="checks" role="list">{w.product.points.map((p) => <li>{p}</li>)}</ul>
+        <div class="cta">
+          <a class="btn btn-white" href={w.product.link.href} rel="noopener" target="_blank">{w.product.link.label}<Icon name="arrowUpRight" /><span class="sr-only">{UI[lang].newTab}</span></a>
+          <a class="btn btn-glass" href={serviceRoute(lang, 'billing')}>{serviceName('billing')}</a>
+        </div>
+      </div>
+      <a class="product-visual reveal" data-delay="1" href={w.product.link.href} rel="noopener" target="_blank" aria-hidden="true" tabindex="-1">
+        <img src={`/video/billing-${lang}.webp`} width="1200" height="800" alt="" loading="lazy" />
+        <span class="pv-badge">gestoia.es <Icon name="arrowUpRight" size={14} /></span>
+      </a>
+    </div>
+  </section>
+
+  <div class="spacer"></div>
+  <CTABand lang={lang} />
+</Base>
+
+<style>
+  .index { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 40px; max-width: 760px; }
+  .index a {
+    display: flex; flex-direction: column; gap: 4px; padding: 16px 18px; border-radius: 14px;
+    border: 1px solid var(--dark-border); background: rgba(255, 255, 255, 0.04); transition: background-color 180ms, border-color 180ms;
+  }
+  .index a:hover, .index a:focus-visible { background: rgba(255, 255, 255, 0.09); border-color: rgba(255, 255, 255, 0.22); }
+  .i-metric { font-family: var(--font-display); font-weight: 700; font-size: 1.375rem; letter-spacing: -0.03em; color: #fff; }
+  .i-sector { font-size: var(--fs-xs); color: var(--on-dark-muted); line-height: 1.35; }
+
+  .note { display: inline-flex; align-items: center; gap: 8px; font-size: var(--fs-sm); color: var(--text-muted); margin-bottom: 32px; }
+  .cases { display: flex; flex-direction: column; gap: 28px; }
+  .case { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg); box-shadow: var(--shadow-sm); overflow: hidden; scroll-margin-top: 96px; }
+  .case-head { display: grid; grid-template-columns: 1fr auto; gap: 32px; padding: clamp(28px, 4vw, 44px); align-items: start; }
+  .sector { font-size: var(--fs-label); font-weight: 600; letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--accent); }
+  .case-head .h3 { margin-top: 12px; font-size: clamp(1.4rem, 1.2rem + 0.8vw, 1.85rem); letter-spacing: -0.025em; }
+  .summary { margin-top: 12px; font-size: var(--fs-lg); max-width: 40em; }
+  .metric-box { min-width: 220px; padding: 22px 24px; border-radius: 18px; background: linear-gradient(135deg, var(--accent-soft), rgba(58, 167, 240, 0.08)); border: 1px solid var(--accent-line); }
+  .metric {
+    font-family: var(--font-display); font-weight: 700; font-size: clamp(2.2rem, 1.8rem + 1.4vw, 3rem); letter-spacing: -0.04em; line-height: 1;
+    background: linear-gradient(100deg, var(--accent), #8f6dff 50%, #3aa7f0); -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .metric-label { margin-top: 8px; font-size: var(--fs-xs); color: var(--text-muted); max-width: 16em; }
+  .csr { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--border); }
+  .csr > div { padding: 28px clamp(24px, 3vw, 36px); }
+  .csr > div + div { border-left: 1px solid var(--border); }
+  .csr-k { font-size: var(--fs-label); font-weight: 600; letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; }
+  .csr p:not(.csr-k) { font-size: var(--fs-sm); }
+  .result { color: var(--ink); font-weight: 500; }
+  .case-foot { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 20px clamp(24px, 3vw, 36px); background: var(--surface); border-top: 1px solid var(--border); }
+  .stack, .svcs { list-style: none; display: flex; flex-wrap: wrap; gap: 8px 16px; }
+  .stack { gap: 8px; }
+  .stack .pill { background: var(--bg); }
+
+  .product { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(40px, 6vw, 88px); align-items: center; }
+  .product .h2 { margin-top: 14px; }
+  .product .lead { margin-top: 16px; }
+  .product .checks { margin-top: 24px; }
+  .product-visual { position: relative; display: block; }
+  .pv-badge {
+    position: absolute; right: 16px; bottom: 16px; display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 12px; border-radius: 999px; background: rgba(12, 11, 25, 0.85); color: #fff;
+    font-size: var(--fs-xs); font-weight: 600; backdrop-filter: blur(8px);
+  }
+  .product-visual img { border-radius: var(--radius-card); box-shadow: 0 40px 100px -30px rgba(0, 0, 0, 0.7); border: 1px solid rgba(255, 255, 255, 0.12); }
+  .spacer { height: clamp(48px, 6vw, 80px); }
+
+  @media (max-width: 960px) {
+    .case-head { grid-template-columns: 1fr; }
+    .metric-box { min-width: 0; }
+    .csr { grid-template-columns: 1fr; }
+    .csr > div + div { border-left: 0; border-top: 1px solid var(--border); }
+    .case-foot { flex-direction: column; align-items: flex-start; }
+    .product { grid-template-columns: 1fr; }
+    .index { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>

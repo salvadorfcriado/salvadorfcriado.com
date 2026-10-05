@@ -1,0 +1,60 @@
+---
+import Icon from './Icon.astro';
+import { copy, mailto } from '../i18n/site';
+import { dossierPdf } from '../i18n/routes';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const c = copy(lang);
+---
+<section class="section cta-section" id="contact">
+  <div class="container">
+    <div class="band reveal">
+      <div class="band-copy">
+        <h2 class="h2">{c.cta.title}</h2>
+        <p class="lead">{c.cta.lead}</p>
+      </div>
+      <div class="band-actions">
+        <a class="btn btn-white btn-lg" href={mailto(lang)}><Icon name="mail" />{c.cta.primary}</a>
+        <a class="btn btn-glass btn-lg" href={dossierPdf(lang)} download><Icon name="download" />{c.cta.secondary}</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cta-section { padding-top: 0; }
+  .band {
+    position: relative; overflow: hidden; isolation: isolate;
+    display: flex; align-items: center; justify-content: space-between; gap: 40px;
+    padding: clamp(36px, 5vw, 64px);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(120% 140% at 100% 0%, rgba(139, 123, 255, 0.55), transparent 55%),
+      radial-gradient(90% 120% at 0% 100%, rgba(111, 227, 255, 0.18), transparent 60%),
+      var(--dark);
+    color: var(--on-dark-muted);
+    box-shadow: var(--shadow-lg);
+  }
+  .band::after {
+    content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background-image:
+      linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 44px 44px;
+    -webkit-mask-image: linear-gradient(to left, #000, transparent 70%);
+    mask-image: linear-gradient(to left, #000, transparent 70%);
+  }
+  .h2 { color: #fff; max-width: 18em; }
+  .lead { margin-top: 14px; color: var(--on-dark-muted); }
+  .band-actions { display: flex; flex-direction: column; gap: 12px; flex: none; }
+  @media (max-width: 860px) {
+    .band { flex-direction: column; align-items: flex-start; }
+    .band-actions { width: 100%; }
+    .band-actions .btn { width: 100%; }
+  }
+</style>

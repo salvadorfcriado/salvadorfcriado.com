@@ -1,0 +1,35 @@
+---
+interface Props {
+  eyebrow?: string;
+  title: string;
+  lead?: string;
+  align?: 'left' | 'center';
+  id?: string;
+}
+
+const { eyebrow, title, lead, align = 'left', id } = Astro.props;
+const hasAction = Astro.slots.has('default');
+---
+<div class:list={['sh', align, { 'with-action': hasAction }]}>
+  <div class="sh-copy">
+    {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+    <h2 class="h2" id={id}>{title}</h2>
+    {lead && <p class="lead">{lead}</p>}
+  </div>
+  {hasAction && <div class="sh-action"><slot /></div>}
+</div>
+
+<style>
+  .sh { margin-bottom: clamp(36px, 5vw, 56px); }
+  .sh-copy { max-width: 44rem; }
+  .h2 { margin-top: 14px; }
+  .lead { margin-top: 16px; }
+  .center { text-align: center; }
+  .center .sh-copy { margin-inline: auto; }
+  .center .lead { margin-inline: auto; }
+  .with-action { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
+  .sh-action { flex: none; }
+  @media (max-width: 720px) {
+    .with-action { flex-direction: column; align-items: flex-start; }
+  }
+</style>

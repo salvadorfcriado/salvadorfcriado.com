@@ -1,0 +1,57 @@
+---
+/* A service as a card: poster of its animation, icon, name, one line, link.
+   The whole card is clickable through the title link's ::after overlay, so
+   there is one link per card and its accessible name is the service name. */
+import Icon from './Icon.astro';
+import { SERVICE_ICON, type Service } from '../i18n/site';
+import { serviceRoute } from '../i18n/routes';
+import type { Lang } from '../i18n/ui';
+
+interface Props {
+  s: Service;
+  lang: Lang;
+  cta: string;
+  index?: number;
+  large?: boolean;
+}
+
+const { s, lang, cta, index = 0, large = false } = Astro.props;
+---
+<article class:list={['svc', 'card', 'card--hover', 'reveal', { large }]} data-delay={String(index % 4)}>
+  <div class="media">
+    <img src={`/video/${s.id}-${lang}.webp`} width="1200" height="800" alt="" loading="lazy" decoding="async" />
+  </div>
+  <div class="body">
+    <span class="icon-tile"><Icon name={SERVICE_ICON[s.id]} /></span>
+    <h3><a href={serviceRoute(lang, s.id)}>{s.name}</a></h3>
+    <p>{s.tagline}</p>
+    <span class="link-arrow" aria-hidden="true">{cta}<Icon name="arrow" /></span>
+  </div>
+</article>
+
+<style>
+  .svc { position: relative; display: flex; flex-direction: column; overflow: hidden; height: 100%; }
+  .media { background: var(--surface); border-bottom: 1px solid var(--border); overflow: hidden; }
+  .media img { width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; transition: transform 600ms var(--ease); }
+  .svc:hover .media img { transform: scale(1.03); }
+  .body { display: flex; flex-direction: column; gap: 10px; padding: 24px 24px 26px; flex: 1; }
+  .icon-tile { margin-bottom: 6px; }
+  h3 { font-size: var(--fs-h3); font-weight: 650; }
+  h3 a::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
+  h3 a:focus-visible { outline: none; }
+  .svc:focus-within { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .body p { font-size: var(--fs-sm); flex: 1; }
+  .link-arrow { margin-top: 6px; }
+  .large { display: grid; grid-template-columns: 1.25fr 1fr; }
+  .large .media { border-bottom: 0; border-right: 1px solid var(--border); }
+  .large .media img { height: 100%; }
+  .large .body { justify-content: center; padding: 36px; }
+  .large h3 { font-size: var(--fs-h2); letter-spacing: -0.03em; }
+  .large .body p { flex: 0; font-size: var(--fs-body); }
+  @media (max-width: 860px) {
+    .large { display: flex; }
+    .large .media { border-right: 0; border-bottom: 1px solid var(--border); }
+    .large .body { padding: 24px; }
+    .large h3 { font-size: var(--fs-h3); }
+  }
+</style>

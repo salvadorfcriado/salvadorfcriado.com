@@ -1,0 +1,145 @@
+---
+/* Experience as a record of delivered work, for someone deciding whether to
+   bring Salvador into a project — not a recruiter CV. Same facts as career.md,
+   clients by sector. Prints cleanly. */
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import PageHero from '../components/PageHero.astro';
+import CTABand from '../components/CTABand.astro';
+import { SITE } from '../consts';
+import { copy, mailto } from '../i18n/site';
+import { route } from '../i18n/routes';
+import { otherLang, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const c = copy(lang);
+const v = c.cv;
+---
+<Base
+  title={v.meta.title}
+  titleSuffix={false}
+  description={v.meta.description}
+  path={route(lang, 'cv')}
+  altPath={route(otherLang(lang), 'cv')}
+  lang={lang}
+  current="about"
+>
+  <PageHero eyebrow={v.hero.eyebrow} title={v.hero.title} lead={v.hero.lead}>
+    <div class="cta no-print">
+      <a class="btn btn-primary btn-lg" href={mailto(lang)}>{c.common.contactCta}<Icon name="arrow" /></a>
+      <button class="btn btn-glass btn-lg" type="button" onclick="window.print()"><Icon name="printer" />{v.labels.print}</button>
+    </div>
+  </PageHero>
+
+  <section class="section">
+    <div class="container layout">
+      <div class="main">
+        <div class="summary reveal">
+          {v.summary.map((p) => <p>{p}</p>)}
+        </div>
+
+        <h2 class="h3 block-title">{v.labels.experience}</h2>
+        <ol class="xp" role="list">
+          {v.experience.map((x) => (
+            <li class="job reveal">
+              <div class="job-head">
+                <div>
+                  <h3>{x.role}</h3>
+                  <p class="ctx">{x.context}</p>
+                </div>
+                <p class="when">{x.when}</p>
+              </div>
+              <ul class="checks" role="list">{x.delivered.map((d) => <li>{d}</li>)}</ul>
+              <ul class="tags" role="list">{x.tags.map((t) => <li class="pill">{t}</li>)}</ul>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <aside class="side">
+        <div class="side-block">
+          <h2 class="side-title">{v.labels.skills}</h2>
+          {v.skills.map((g) => (
+            <div class="skill">
+              <h3>{g.t}</h3>
+              <ul role="list">{g.items.map((i) => <li>{i}</li>)}</ul>
+            </div>
+          ))}
+        </div>
+        <div class="side-block">
+          <h2 class="side-title">{v.labels.domains}</h2>
+          <ul class="domains" role="list">{v.domains.map((d) => <li class="chip">{d}</li>)}</ul>
+        </div>
+        <div class="side-block">
+          <h2 class="side-title">{v.labels.certs}</h2>
+          <dl class="kv">{v.certs.map((x) => <div><dt>{x.k}</dt><dd>{x.v}</dd></div>)}</dl>
+        </div>
+        <div class="side-block">
+          <h2 class="side-title">{v.labels.education}</h2>
+          <dl class="kv">{v.education.map((x) => <div><dt>{x.k}</dt><dd>{x.v}</dd></div>)}</dl>
+        </div>
+        <div class="side-block">
+          <h2 class="side-title">{v.labels.languages}</h2>
+          <p class="langs">{v.languages}</p>
+        </div>
+        <div class="side-block contact-mini">
+          <a href={`mailto:${SITE.email}`}><Icon name="mail" size={16} />{SITE.email}</a>
+          <a href={SITE.linkedin} rel="me noopener" target="_blank"><Icon name="linkedin" size={16} />LinkedIn</a>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <CTABand lang={lang} />
+</Base>
+
+<style>
+  .layout { display: grid; grid-template-columns: 1fr 360px; gap: clamp(32px, 5vw, 64px); align-items: start; }
+  .summary { display: flex; flex-direction: column; gap: 14px; font-size: var(--fs-lg); line-height: 1.65; padding-bottom: 36px; border-bottom: 1px solid var(--border); }
+  .summary p:first-child { color: var(--ink); }
+  .block-title { margin: 40px 0 20px; font-size: var(--fs-h3); }
+  .xp { list-style: none; display: flex; flex-direction: column; gap: 16px; }
+  .job { padding: 26px 28px; border-radius: var(--radius-card); border: 1px solid var(--border); background: var(--bg); box-shadow: var(--shadow-sm); break-inside: avoid; }
+  .job-head { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; margin-bottom: 16px; }
+  .job h3 { font-size: var(--fs-h4); font-weight: 650; }
+  .ctx { font-size: var(--fs-sm); color: var(--accent-strong); font-weight: 500; margin-top: 2px; }
+  .when { flex: none; font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text-muted); background: var(--surface); padding: 5px 10px; border-radius: 999px; }
+  .job .checks { gap: 8px; }
+  .job .checks li { font-size: var(--fs-sm); }
+  .tags { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
+  .tags .pill { font-size: 0.75rem; padding: 4px 10px; }
+
+  .side { position: sticky; top: 96px; display: flex; flex-direction: column; gap: 16px; }
+  .side-block { padding: 22px; border-radius: var(--radius-card); background: var(--surface); border: 1px solid var(--border); }
+  .side-title { font-size: var(--fs-label); font-weight: 700; letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+  .skill + .skill { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .skill h3 { font-size: var(--fs-sm); font-weight: 650; margin-bottom: 6px; }
+  .skill ul { list-style: none; display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: var(--fs-xs); color: var(--text); }
+  .skill li::before { content: '·'; margin-right: 6px; color: var(--accent); }
+  .domains { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; }
+  .kv { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+  .kv dt { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-muted); }
+  .kv dd { margin: 0; font-size: var(--fs-xs); color: var(--ink); line-height: 1.5; }
+  .langs { font-size: var(--fs-sm); color: var(--ink); }
+  .contact-mini { display: flex; flex-direction: column; gap: 10px; }
+  .contact-mini a { display: inline-flex; align-items: center; gap: 8px; font-size: var(--fs-sm); font-weight: 500; color: var(--ink); }
+  .contact-mini a:hover, .contact-mini a:focus-visible { color: var(--accent); }
+
+  @media (max-width: 1000px) {
+    .layout { grid-template-columns: 1fr; }
+    .side { position: static; }
+  }
+  @media (max-width: 560px) {
+    .job { padding: 20px; }
+    .job-head { flex-direction: column; gap: 8px; }
+  }
+  @media print {
+    .side { position: static; }
+    .layout { grid-template-columns: 1fr; }
+    .job, .side-block { box-shadow: none; }
+  }
+</style>

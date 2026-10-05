@@ -1,0 +1,69 @@
+---
+/* Build / combine / integrate. The positioning argument as a spectrum: speed
+   on one end, control on the other, and the choice made per project. */
+import Icon from './Icon.astro';
+import SectionHeader from './SectionHeader.astro';
+import type { SiteCopy } from '../i18n/site';
+
+interface Props {
+  a: SiteCopy['home']['approach'];
+  spectrum: [string, string];
+}
+
+const { a, spectrum } = Astro.props;
+const ICONS = ['layers', 'spark', 'bolt'] as const;
+---
+<section class="section approach" id="approach">
+  <div class="container">
+    <SectionHeader eyebrow={a.eyebrow} title={a.title} lead={a.lead} />
+    <div class="spectrum reveal" aria-hidden="true">
+      <span>{spectrum[0]}</span>
+      <span class="track"><span class="dot"></span></span>
+      <span>{spectrum[1]}</span>
+    </div>
+    <ol class="levels" role="list">
+      {a.levels.map((l, i) => (
+        <li class:list={['level', 'reveal', { featured: i === a.levels.length - 1 }]} data-delay={String(i)}>
+          <div class="lv-top">
+            <span class="icon-tile"><Icon name={ICONS[i]} /></span>
+            <span class="tag">{String(i + 1).padStart(2, '0')} · {l.tag}</span>
+          </div>
+          <h3>{l.t}</h3>
+          <p class="d">{l.d}</p>
+          <p class="when">{l.when}</p>
+          <p class="tools">{l.tools}</p>
+        </li>
+      ))}
+    </ol>
+    <p class="note reveal"><Icon name="check" size={18} />{a.note}</p>
+  </div>
+</section>
+
+<style>
+  .spectrum { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; font-size: var(--fs-xs); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted); }
+  .track { position: relative; flex: 1; height: 4px; border-radius: 4px; background: linear-gradient(90deg, #c9c1ff, var(--accent) 60%, var(--dark)); }
+  .dot { position: absolute; top: 50%; left: 0; width: 14px; height: 14px; margin-top: -7px; border-radius: 50%; background: #fff; border: 3px solid var(--accent); animation: slide 7s var(--ease) infinite alternate; }
+  @keyframes slide { to { left: calc(100% - 14px); } }
+  @media (prefers-reduced-motion: reduce) { .dot { animation: none; left: 50%; } }
+  .levels { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .level { display: flex; flex-direction: column; padding: 30px 28px; border-radius: var(--radius-card); background: var(--surface); border: 1px solid var(--border); }
+  .lv-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .tag { font-size: var(--fs-label); font-weight: 700; letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--accent); }
+  h3 { margin-top: 22px; font-size: var(--fs-h3); font-weight: 650; }
+  .d { margin-top: 10px; font-size: var(--fs-sm); flex: 1; }
+  .when { margin-top: 18px; font-size: var(--fs-sm); font-weight: 500; color: var(--ink); }
+  .tools { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text-muted); }
+  .featured {
+    background:
+      radial-gradient(120% 90% at 100% 0%, rgba(139, 123, 255, 0.45), transparent 60%),
+      var(--dark);
+    border-color: transparent; color: var(--on-dark-muted); box-shadow: var(--shadow-lg);
+  }
+  .featured h3, .featured .when { color: #fff; }
+  .featured .tag { color: #b4a8ff; }
+  .featured .icon-tile { background: rgba(139, 123, 255, 0.16); color: #c2b8ff; border-color: rgba(139, 123, 255, 0.35); }
+  .featured .tools { color: #b4a8ff; border-color: var(--dark-border); }
+  .note { display: flex; align-items: center; gap: 10px; margin-top: 28px; font-weight: 500; color: var(--ink); }
+  .note :global(svg) { color: var(--accent); flex: none; }
+  @media (max-width: 960px) { .levels { grid-template-columns: 1fr; } }
+</style>

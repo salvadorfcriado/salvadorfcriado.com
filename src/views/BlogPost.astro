@@ -1,0 +1,216 @@
+---
+import { render } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import TagChips from '../components/TagChips.astro';
+import { SITE } from '../consts';
+import { UI, getPosts, localePath, tagLabelIn, type Lang, type Post } from '../i18n/ui';
+import { isoDay } from '../lib/format';
+
+interface Props {
+  post: Post;
+  lang: Lang;
+}
+
+const { post, lang } = Astro.props;
+const t = UI[lang].blog;
+const BLOG = t;
+const ui = UI[lang];
+const tagLabel = (slug: string) => tagLabelIn(lang, slug);
+const L = (p: string) => localePath(lang, p);
+const url = L(`/blog/${post.id}/`);
+const { Content } = await render(post);
+const d = post.data;
+const iso = d.date.toISOString();
+const day = isoDay(d.date);
+
+/* Read next: most tag overlap first, newest as the tiebreak. Posts used to be
+   dead ends — the only exit was an off-site link, at the warmest moment on the
+   whole site. */
+const all = await getPosts(lang);
+const related = all
+  .filter((p) => p.id !== post.id)
+  .map((p) => ({
+    p,
+    overlap: p.data.tags.filter((t) => (d.tags as readonly string[]).includes(t)).length,
+  }))
+  .sort((a, b) => b.overlap - a.overlap)
+  .slice(0, 2)
+  .map(({ p }) => p);
+
+/* A hand-made cover wins; otherwise the card scripts/og.mjs rendered for this
+   slug. Never the site-wide default — that is what made every article unfurl
+   with the same picture. */
+const ogImage = d.cover ?? `/img/og/${post.id}.png`;
+
+const jsonLd = [
+  {
+    '@type': 'BlogPosting',
+    '@id': `${SITE.url}${url}#post`,
+    headline: d.title,
+    description: d.excerpt,
+    datePublished: iso,
+    dateModified: iso,
+    author: { '@id': `${SITE.url}/#person` },
+    publisher: { '@id': `${SITE.url}/#person` },
+    isPartOf: { '@id': `${SITE.url}${L('/blog/')}#blog` },
+    mainEntityOfPage: `${SITE.url}${url}`,
+    image: new URL(ogImage, SITE.url).href,
+    keywords: d.tags.map(tagLabel).join(', '),
+    about: d.tags.map((tag) => ({ '@type': 'Thing', name: tagLabel(tag) })),
+    inLanguage: lang,
+  },
+  {
+    '@type': 'BreadcrumbList',
+    '@id': `${SITE.url}${url}#breadcrumb`,
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: t.home, item: `${SITE.url}${L('/')}` },
+      { '@type': 'ListItem', position: 2, name: BLOG.name, item: `${SITE.url}${L('/blog/')}` },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: tagLabel(d.tags[0]),
+        item: `${SITE.url}${L(`/blog/tags/${d.tags[0]}/`)}`,
+      },
+      { '@type': 'ListItem', position: 4, name: d.title },
+    ],
+  },
+];
+---
+<Base
+  title={d.title}
+  ogTitle={d.title}
+  description={d.excerpt}
+  path={url}
+  ogImage={ogImage}
+  ogImageAlt={d.title}
+  ogType="article"
+  article={{ publishedTime: iso, tags: d.tags.map(tagLabel) }}
+  current="blog"
+  jsonLd={jsonLd}
+  lang={lang}
+>
+  <article class="post" lang={ui.htmlLang}>
+    <header class="post-head">
+      <p class="meta">
+        <time datetime={day}>{day}</time>{' · '}{d.readingTime} {t.minRead}
+      </p>
+      <h1>{d.title}</h1>
+      <p class="summary">{d.excerpt}</p>
+      <TagChips tags={d.tags} variant="inline" lang={lang} />
+    </header>
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    <footer class="end">
+      {related.length > 0 && (
+        <nav class="related" aria-label={t.readNext}>
+          <p class="label">{t.readNext}</p>
+          <ul role="list">
+            {related.map((p) => (
+              <li><a href={L(`/blog/${p.id}/`)}>{p.data.title}</a></li>
+            ))}
+          </ul>
+          <p class="all"><a href={L('/blog/')}>{t.allNotes}</a></p>
+        </nav>
+      )}
+
+      <div class="author">
+        <img src="/img/portrait-390.webp" width="52" height="52" alt="" loading="lazy" />
+        <p>
+          <strong>{SITE.name}</strong> — {t.author}
+          <span class="open">{ui.status}</span>
+        </p>
+      </div>
+
+      <div class="cta">
+        <a class="btn btn-primary" href={`mailto:${SITE.email}?subject=${t.mailSubject}`}>{SITE.email}</a>
+        <a class="btn btn-outline" href={L('/#services')}>{t.seeWork}</a>
+        <a class="btn btn-outline" href={SITE.linkedin} rel="me noopener" target="_blank">LinkedIn<span class="sr-only">{ui.newTab}</span></a>
+      </div>
+    </footer>
+  </article>
+</Base>
+
+<style>
+  .post { max-width: 760px; margin: 0 auto; padding: clamp(48px, 6vw, 80px) var(--gutter) 80px; }
+  .meta { font-family: var(--font-mono); font-size: var(--text-label); color: var(--text-muted); }
+  .post-head h1 {
+    font-size: var(--text-h1); font-weight: 700; line-height: 1.1;
+    letter-spacing: var(--tracking-display); margin: 14px 0 16px;
+  }
+  .summary { font-size: var(--text-body-lg); line-height: 1.6; margin-bottom: 18px; }
+  /* Not `.head` — global.css gives that class `display: flex` for SectionHead's
+     one-line heading row, and the article header is four stacked blocks. Sharing
+     the name laid the date, the h1, the excerpt and the tag chips out side by
+     side on every post page above 560px; below that the global media query
+     stacks them again, which is why it never showed up on a phone. */
+  .post-head { padding-bottom: 28px; border-bottom: 1px solid var(--border); }
+
+  .prose { font-size: var(--text-body-lg); line-height: 1.75; margin-top: var(--space-gap-lg); }
+  .prose :global(h2) {
+    font-size: var(--text-h2); font-weight: 700; letter-spacing: var(--tracking-tight);
+    margin: 44px 0 14px; line-height: 1.25;
+  }
+  .prose :global(h3) { font-size: var(--text-h3); font-weight: 600; margin: var(--space-gap-lg) 0 10px; }
+  .prose :global(p) { margin: 0 0 18px; }
+  .prose :global(ul), .prose :global(ol) { margin: 0 0 18px; padding-left: 22px; }
+  .prose :global(li) { margin-bottom: var(--space-gap-sm); }
+  .prose :global(a) { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+  .prose :global(a:hover), .prose :global(a:focus-visible) { color: var(--accent-strong); }
+  .prose :global(strong) { color: var(--ink); font-weight: 600; }
+  .prose :global(hr) { border: 0; border-top: 1px solid var(--border); margin: 40px 0; }
+  .prose :global(blockquote) {
+    margin: 0 0 18px; padding: 4px 0 4px 20px;
+    border-left: 3px solid var(--accent); color: var(--text-muted);
+  }
+  .prose :global(code) {
+    font-family: var(--font-mono); font-size: 0.88em;
+    background: var(--accent-soft); color: var(--accent-strong);
+    padding: 2px 5px; border-radius: 4px;
+  }
+  /* Shiki is pinned to github-light in astro.config.mjs. It writes the theme's
+     background as an INLINE style on the <pre>, which beat the rule below and
+     put --ink text on a #24292e plate at 1.24:1. Let the theme own both. */
+  .prose :global(pre) {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card); padding: 18px 20px;
+    overflow-x: auto; margin: 0 0 22px; font-size: var(--text-code); line-height: 1.6;
+  }
+  .prose :global(pre code) { background: none; padding: 0; font-size: inherit; }
+  .prose :global(table) {
+    width: 100%; border-collapse: collapse; margin: 0 0 22px; font-size: var(--text-body);
+    display: block; overflow-x: auto;
+  }
+  .prose :global(th), .prose :global(td) {
+    border-bottom: 1px solid var(--border); padding: 10px 12px; text-align: left; vertical-align: top;
+  }
+  .prose :global(th) {
+    font-family: var(--font-display); font-size: var(--text-meta); font-weight: 600;
+    letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--ink);
+  }
+  .prose :global(img) { border-radius: var(--radius-card); margin: 0 0 22px; }
+
+  .end { margin-top: 48px; padding-top: 28px; border-top: 1px solid var(--border); }
+  .related ul { list-style: none; margin: 12px 0 0; padding: 0; }
+  .related li { margin-bottom: var(--space-gap-sm); }
+  .related li a {
+    font-family: var(--font-display); font-size: var(--text-card-title);
+    font-weight: 600; color: var(--ink);
+  }
+  .related li a:hover, .related li a:focus-visible { color: var(--accent); }
+  .related .all { font-family: var(--font-mono); font-size: var(--text-label); margin-top: 12px; }
+  .related .all a { color: var(--accent); }
+  .author { display: flex; gap: var(--space-gap); align-items: flex-start; margin-top: var(--space-gap-lg); }
+  .author img { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; flex: none; }
+  .author p { font-size: var(--text-body); line-height: 1.6; }
+  .author strong { color: var(--ink); }
+  .open { display: block; margin-top: 6px; color: var(--accent); font-family: var(--font-mono); font-size: var(--text-meta); }
+  @media (max-width: 620px) {
+    .post-head h1 { font-size: 30px; }
+    .prose { font-size: 16px; }
+    /* Half the line was off-screen at 375px. */
+    .prose :global(pre) { font-size: 12px; padding: 14px; }
+  }
+</style>

@@ -1,0 +1,43 @@
+---
+/* Dark hero for inner pages: eyebrow, title, lead, optional actions and an
+   optional visual on the right (named slot "visual"). */
+interface Props {
+  eyebrow: string;
+  title: string;
+  lead?: string;
+  crumbs?: { href: string; label: string }[];
+}
+
+const { eyebrow, title, lead, crumbs } = Astro.props;
+const hasVisual = Astro.slots.has('visual');
+---
+<section class="section section--dark glow page-hero">
+  <div class="grid-lines" aria-hidden="true"></div>
+  <div class:list={['container', 'inner', { split: hasVisual }]}>
+    <div class="copy">
+      {crumbs && (
+        <nav class="crumbs" aria-label="Breadcrumb">
+          {crumbs.map((c) => <><a href={c.href}>{c.label}</a><span aria-hidden="true">/</span></>)}
+        </nav>
+      )}
+      <p class="eyebrow">{eyebrow}</p>
+      <h1 class="h1">{title}</h1>
+      {lead && <p class="lead">{lead}</p>}
+      <slot />
+    </div>
+    {hasVisual && <div class="visual"><slot name="visual" /></div>}
+  </div>
+</section>
+
+<style>
+  .page-hero { padding-top: clamp(64px, 8vw, 104px); padding-bottom: clamp(64px, 8vw, 104px); }
+  .inner { position: relative; }
+  .split { display: grid; grid-template-columns: 1fr 1.05fr; gap: clamp(32px, 5vw, 72px); align-items: center; }
+  .copy { max-width: 46rem; }
+  .crumbs { display: flex; flex-wrap: wrap; gap: 8px; font-size: var(--fs-xs); margin-bottom: 20px; color: var(--on-dark-muted); }
+  .crumbs a:hover, .crumbs a:focus-visible { color: #fff; }
+  .h1 { margin: 16px 0 20px; }
+  @media (max-width: 960px) {
+    .split { grid-template-columns: 1fr; }
+  }
+</style>

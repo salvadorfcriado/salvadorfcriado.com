@@ -1,22 +1,23 @@
 ---
 /* One row in a post listing. Identical markup and styles used to live in both
    blog/index.astro and blog/tags/[tag].astro. */
-import type { CollectionEntry } from 'astro:content';
 import Cover from './Cover.astro';
-import { tagLabel } from '../tags';
+import { localePath, tagLabelIn, type Lang, type Post } from '../i18n/ui';
 import { isoDay } from '../lib/format';
 
 interface Props {
-  post: CollectionEntry<'blog'>;
+  post: Post;
+  lang?: Lang;
 }
 
-const { post } = Astro.props;
+const { post, lang = 'en' } = Astro.props;
+const tagLabel = (slug: string) => tagLabelIn(lang, slug);
 const d = post.data;
 const day = isoDay(d.date);
 ---
 <li>
   <div class="row">
-    <Cover title={d.title} tag={d.tags[0]} variant="thumb" />
+    <Cover title={d.title} tag={d.tags[0]} variant="thumb" lang={lang} />
     <div class="body">
       <p class="meta">
         <time datetime={day}>{day}</time>
@@ -24,7 +25,7 @@ const day = isoDay(d.date);
       </p>
       {/* Only the title is the link. Wrapping the whole card made the accessible
           name a paragraph that opened with the date and every tag. */}
-      <h2><a href={`/blog/${post.id}/`}>{d.title}</a></h2>
+      <h2><a href={localePath(lang, `/blog/${post.id}/`)}>{d.title}</a></h2>
       <p class="excerpt">{d.excerpt}</p>
     </div>
   </div>
